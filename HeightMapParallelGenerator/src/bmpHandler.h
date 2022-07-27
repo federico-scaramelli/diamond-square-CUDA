@@ -86,7 +86,7 @@ public:
 		}
 	}
 
-	Color(uint32_t B, uint32_t G, uint32_t R, uint32_t A) {
+	Color(uint32_t B, uint32_t G, uint32_t R) {
 		this->B = B;
 		this->G = G;
 		this->R = R;
@@ -101,10 +101,10 @@ public:
 	std::vector<uint8_t> data; //Data array
 
 	BMP(const char* fname) {
-		read(fname);
+		Read(fname);
 	}
 
-	void read(const char* fname) {
+	void Read(const char* fname) {
 		//Read the file in binary mode
 		std::ifstream input{fname, std::ios::binary};
 		if (input) {
@@ -124,7 +124,7 @@ public:
 				if (infoHeader.size >= (sizeof(BMPInfoHeader) + sizeof(BMPColorHeader))) {
 					input.read(reinterpret_cast<char*>(&colorHeader), sizeof(colorHeader));
 					//Read the color header and put it on my BMPColorHeader instance
-					checkColorHeader(colorHeader);
+					CheckColorHeader(colorHeader);
 				}
 				else {
 					std::cerr << "Warning! The file \"" << fname <<
@@ -158,14 +158,14 @@ public:
 			//Check if we need to take into account row padding
 			//If not..
 			if (infoHeader.width % 4 == 0) {
-				//..read the image data and put it on my data vector
+				//..Read the image data and put it on my data vector
 				input.read(reinterpret_cast<char*>(data.data()), data.size());
 				header.fileSize += data.size();
 			}
 			else {
 				//..otherwise discard the padding data
 				rowStride = infoHeader.width * infoHeader.bitsPerPixel / sizeof(uint8_t);
-				uint32_t newStride = makeStrideAligned(4);
+				uint32_t newStride = MakeStrideAligned(4);
 				std::vector<uint8_t> paddingRow(newStride - rowStride);
 
 				for (int y = 0; y < infoHeader.height; ++y) {
@@ -187,7 +187,7 @@ public:
 		}
 
 		infoHeader.width = width;
-		infoHeader.height = height;
+		infoHeader.height = -height;
 		if (hasAlpha) {
 			infoHeader.size = sizeof(BMPInfoHeader) + sizeof(BMPColorHeader);
 			header.offsetData = sizeof(BMPHeader) + sizeof(BMPInfoHeader) + sizeof(BMPColorHeader);
@@ -207,30 +207,30 @@ public:
 			rowStride = width * 3;
 			data.resize(rowStride * height);
 
-			uint32_t newStride = makeStrideAligned(4);
+			uint32_t newStride = MakeStrideAligned(4);
 			header.fileSize = header.offsetData + data.size() + infoHeader.height * (newStride - rowStride);
 		}
 	}
 
-	void write(const char* fname) {
+	void Write(const char* fname) {
 		std::ofstream output{fname, std::ios_base::binary};
 		if (output) {
 			//We consider only the 24 and 32 bits per pixel case
 			if (infoHeader.bitsPerPixel == 32) {
-				writeHeadersAndData(output);
+				WriteHeadersAndData(output);
 			}
 			else if (infoHeader.bitsPerPixel == 24) {
 				//Check is we need to take into account row padding
 				//If not..
 				if (infoHeader.width % 4 == 0) {
-					writeHeadersAndData(output);
+					WriteHeadersAndData(output);
 				}
 				else {
-					//..otherwise write also some padding data
-					uint32_t newStride = makeStrideAligned(4);
+					//..otherwise Write also some padding data
+					uint32_t newStride = MakeStrideAligned(4);
 					std::vector<uint8_t> paddingRow(newStride - rowStride);
 
-					writeHeader(output);
+					WriteHeader(output);
 
 					for (int y = 0; y < infoHeader.height; ++y) {
 						output.write(reinterpret_cast<const char*>(data.data() + rowStride * y), rowStride);
@@ -247,7 +247,7 @@ public:
 		}
 	}
 
-	void fillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h,
+	void FillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h,
 	                uint8_t B, uint8_t G, uint8_t R, uint8_t A) {
 		if (x0 + w > static_cast<uint32_t>(infoHeader.width) || y0 + h > static_cast<uint32_t>(infoHeader.height)) {
 			throw std::runtime_error("The region does not fit in the image!");
@@ -265,7 +265,7 @@ public:
 		}
 	}
 
-	void fillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h, const Color& color, uint8_t A) {
+	void FillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h, const Color& color, uint8_t A) {
 		if (x0 + w > static_cast<uint32_t>(infoHeader.width) || y0 + h > static_cast<uint32_t>(infoHeader.height)) {
 			throw std::runtime_error("The region does not fit in the image!");
 		}
@@ -289,7 +289,7 @@ public:
 private:
 	uint32_t rowStride{0};
 
-	uint32_t makeStrideAligned(uint32_t alignment) {
+	uint32_t MakeStrideAligned(uint32_t alignment) {
 		uint32_t newStride = rowStride;
 		while (newStride % alignment != 0) {
 			newStride++;
@@ -297,12 +297,12 @@ private:
 		return newStride;
 	}
 
-	void writeHeadersAndData(std::ofstream& output) {
-		writeHeader(output);
+	void WriteHeadersAndData(std::ofstream& output) {
+		WriteHeader(output);
 		output.write(reinterpret_cast<const char*>(data.data()), data.size());
 	}
 
-	void writeHeader(std::ofstream& output) {
+	void WriteHeader(std::ofstream& output) {
 		output.write(reinterpret_cast<const char*>(&header), sizeof(header));
 		output.write(reinterpret_cast<const char*>(&infoHeader), sizeof(infoHeader));
 		if (infoHeader.bitsPerPixel == 32) {
@@ -310,7 +310,7 @@ private:
 		}
 	}
 
-	void checkColorHeader(BMPColorHeader& bmpColorHeader) {
+	void CheckColorHeader(BMPColorHeader& bmpColorHeader) {
 		BMPColorHeader expectedColorHeader;
 		if (expectedColorHeader.redMask != bmpColorHeader.redMask ||
 			expectedColorHeader.greenMask != bmpColorHeader.greenMask ||
