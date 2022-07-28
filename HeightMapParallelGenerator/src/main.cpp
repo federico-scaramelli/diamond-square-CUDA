@@ -2,17 +2,17 @@
 #include "DiamondSquareSequential.h"
 
 int main(int argc, char** argv) {
-	
-	const uint32_t size = 2049;
+
+	const uint32_t size = 65;
 
 	if (!DiamondSquareBase::CheckSizeAdequate(size))
 		return(0);
 
 	DiamondSquareSequential ds{size};
 
-	ds.ExecuteDiamondSquare();
-	//ds.PrintMap();
-	ds.SaveMapOnImage("map.bmp", 2);
+	ds.ExecuteDiamondSquare(64);
+	ds.PrintMap();
+	ds.SaveMapOnImage("map.bmp", 1);
 
 	return(0);
 }

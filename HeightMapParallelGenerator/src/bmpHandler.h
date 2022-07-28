@@ -91,6 +91,12 @@ public:
 		this->G = G;
 		this->R = R;
 	}
+
+	Color(double B, double G, double R) {
+		this->B = static_cast<uint8_t> ((B + 1.0) * 255.0 / 2.0);
+		this->G = static_cast<uint8_t> ((G + 1.0) * 255.0 / 2.0);
+		this->R = static_cast<uint8_t> ((R + 1.0) * 255.0 / 2.0);
+	}
 };
 
 struct BMP {
