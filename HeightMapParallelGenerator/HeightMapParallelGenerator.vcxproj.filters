@@ -6,11 +6,14 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\diamondSquareSequential.cpp" />
+    <ClCompile Include="src\diamondSquareBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bmpHandler.h" />
     <ClInclude Include="src\diamondSquareBase.h" />
-    <ClInclude Include="src\DiamondSquareSequential.h" />
+    <ClInclude Include="src\diamondSquareSequential.h" />
     <ClInclude Include="src\include\stb_image_write.h" />
+    <ClInclude Include="src\colorPixel.h" />
+    <ClInclude Include="src\utils.h" />
   </ItemGroup>
 </Project>

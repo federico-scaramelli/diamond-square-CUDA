@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include "diamondSquareBase.h"
 
 class DiamondSquareSequential : public DiamondSquareBase {

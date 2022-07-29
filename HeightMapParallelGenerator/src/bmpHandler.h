@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <vector>
+#include "ColorPixel.h"
 
 
 //I'm forcing the alignment to 1 byte instead of 4 bytes,
@@ -20,6 +20,7 @@ struct BMPHeader {
 };
 
 #pragma pop
+
 
 struct BMPInfoHeader {
 	uint32_t size{0}; //The size of this header, in bytes
@@ -43,60 +44,6 @@ struct BMPColorHeader {
 	uint32_t alphaMask{0xff000000};
 	int32_t colorSpaceType{0x73524742}; // Default "sRGB" (0x73524742)
 	uint32_t unused[16]{0}; // Unused data for sRGB color space
-};
-
-struct Color {
-public:
-	uint8_t B;
-	uint8_t G;
-	uint8_t R;
-
-	Color(const char* const hexString) {
-		int n;
-		std::istringstream(hexString) >> std::hex >> n;
-		R = n >> 16 & 0xff;
-		std::cout << (int)R << std::endl;
-		G = n >> 8 & 0xff;
-		std::cout << (int)G << std::endl;
-		B = n & 0xff;
-		std::cout << (int)B << std::endl;
-	}
-
-	Color(const std::string& hexString) {
-		int n;
-		std::istringstream(hexString) >> std::hex >> n;
-
-		R = n >> 16 & 0xff;
-		//std::cout << hexString.substr(2, 2) << " = " << (int)R << std::endl;
-		G = n >> 8 & 0xff;
-		//std::cout << hexString.substr(4, 2) << " = " << (int)G << std::endl;
-		B = n & 0xff;
-		//std::cout << hexString.substr(6, 2) << " = " << (int)B << std::endl;
-	}
-
-	Color(const bool white) {
-		if (white) {
-			this->B = 255;
-			this->G = 255;
-			this->R = 255;	
-		} else {
-			this->B = 0;
-			this->G = 0;
-			this->R = 0;	
-		}
-	}
-
-	Color(uint32_t B, uint32_t G, uint32_t R) {
-		this->B = B;
-		this->G = G;
-		this->R = R;
-	}
-
-	Color(double B, double G, double R) {
-		this->B = static_cast<uint8_t> ((B + 1.0) * 255.0 / 2.0);
-		this->G = static_cast<uint8_t> ((G + 1.0) * 255.0 / 2.0);
-		this->R = static_cast<uint8_t> ((R + 1.0) * 255.0 / 2.0);
-	}
 };
 
 struct BMP {
@@ -271,7 +218,7 @@ public:
 		}
 	}
 
-	void FillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h, const Color& color, uint8_t A) {
+	void FillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h, const ColorPixel& color, uint8_t A) {
 		if (x0 + w > static_cast<uint32_t>(infoHeader.width) || y0 + h > static_cast<uint32_t>(infoHeader.height)) {
 			throw std::runtime_error("The region does not fit in the image!");
 		}
@@ -286,10 +233,6 @@ public:
 					data[channels * (y * infoHeader.width + x) + 3] = A;
 			}
 		}
-	}
-
-	void writePixel() {
-		
 	}
 
 private:
