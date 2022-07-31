@@ -96,6 +96,8 @@ void DiamondSquareBase::SaveColorImage(const char* fname, int tileSize) {
 
 	BMP image(size * tileSize, size * tileSize, true);
 	ColorPixel color;
+	std::cout << "Creating color matrix..." << std::endl;
+
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {

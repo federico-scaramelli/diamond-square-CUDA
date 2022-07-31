@@ -9,12 +9,12 @@ int main(int argc, char** argv) {
 	 * TODO: Change stepSize setting with dedicated setter
 	 */
 
-	const uint32_t size = 2049;
+	const uint32_t size = 16385;
 
 	try {
 		DiamondSquareSequential ds{size};
-		ds.SetRandomScale(10.0);
-		ds.ExecuteDiamondSquare(512);
+		ds.SetRandomScale(30.0);
+		ds.ExecuteDiamondSquare(4096);
 		//ds.PrintMap();
 		//ds.PrintGrayScaleMap();
 		ds.SaveGrayScaleImage("map.bmp", 1);
