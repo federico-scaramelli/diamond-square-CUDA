@@ -10,6 +10,12 @@ public:
 	uint8_t G;
 	uint8_t R;
 
+	ColorPixel(const uint8_t grayValue) {
+		this->B = grayValue;
+		this->G = grayValue;
+		this->R = grayValue;
+	}
+
 	ColorPixel(const char* hexString) {
 		if(hexString[0] == '#') {
 			hexString++;
@@ -38,17 +44,13 @@ public:
 		}
 	}
 
-	ColorPixel(uint32_t B, uint32_t G, uint32_t R) {
+	ColorPixel(const uint8_t B, const uint8_t G, const uint8_t R) {
 		this->B = B;
 		this->G = G;
 		this->R = R;
 	}
 
 	ColorPixel(double B, double G, double R, double min, double max) {
-		/*this->B = static_cast<uint8_t> ((B + 1.0) * 255.0 / 2.0);
-		this->G = static_cast<uint8_t> ((G + 1.0) * 255.0 / 2.0);
-		this->R = static_cast<uint8_t> ((R + 1.0) * 255.0 / 2.0);*/
-
 		this->B = mapValue(min, max, 0, 255, B);
 		this->G = mapValue(min, max, 0, 255, G);
 		this->R = mapValue(min, max, 0, 255, R);

@@ -19,7 +19,7 @@ struct BMPHeader {
 	uint32_t offsetData{0}; //Offset (in byte) to start the pixel data, starting from the beginning of the file
 };
 
-#pragma pop
+#pragma pack(pop)
 
 
 struct BMPInfoHeader {
@@ -231,6 +231,23 @@ public:
 				data[channels * (y * infoHeader.width + x) + 2] = color.R;
 				if (channels == 4)
 					data[channels * (y * infoHeader.width + x) + 3] = A;
+			}
+		}
+	}
+
+	void FillRegion(uint32_t x0, uint32_t y0, uint32_t size, const ColorPixel& color) {
+		if (x0 + size > static_cast<uint32_t>(infoHeader.width) || y0 + size > static_cast<uint32_t>(infoHeader.height)) {
+			throw std::runtime_error("The region does not fit in the image!");
+		}
+
+		uint32_t channels = infoHeader.bitsPerPixel / 8;
+		for (uint32_t y = y0; y < y0 + size; ++y) {
+			for (uint32_t x = x0; x < x0 + size; ++x) {
+				data[channels * (y * infoHeader.width + x) + 0] = color.B;
+				data[channels * (y * infoHeader.width + x) + 1] = color.G;
+				data[channels * (y * infoHeader.width + x) + 2] = color.R;
+				if (channels == 4)
+					data[channels * (y * infoHeader.width + x) + 3] = 255;
 			}
 		}
 	}

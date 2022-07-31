@@ -4,16 +4,15 @@
 int main(int argc, char** argv) {
 
 	/*
-	 * TODO: Change grayscale generation -> the array should be of int value instead of Color value
-	 * TODO: Set color extention
 	 * TODO: Change stepSize setting with dedicated setter
+	 * TODO: Delete original double matrix after generating the grayscale one
 	 */
 
 	const uint32_t size = 16385;
 
 	try {
 		DiamondSquareSequential ds{size};
-		ds.SetRandomScale(30.0);
+		ds.SetRandomScale(15.0);
 		ds.ExecuteDiamondSquare(4096);
 		//ds.PrintMap();
 		//ds.PrintGrayScaleMap();

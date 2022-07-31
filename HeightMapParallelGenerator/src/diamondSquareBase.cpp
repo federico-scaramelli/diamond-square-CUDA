@@ -1,6 +1,5 @@
 #include "diamondSquareBase.h"
-#include "colorMapping.h"
-#include <algorithm>
+
 
 DiamondSquareBase::DiamondSquareBase(const uint32_t size) {
 	this->size = size;
@@ -9,7 +8,6 @@ DiamondSquareBase::DiamondSquareBase(const uint32_t size) {
 
 	this->map = new double[size * size];
 	memset(map, 0.0, sizeof(double) * size * size);
-	//PrintMap();
 	half = 0;
 }
 
@@ -19,19 +17,17 @@ DiamondSquareBase::~DiamondSquareBase() {
 
 void DiamondSquareBase::ExecuteDiamondSquare() {
 	InitializeDiamondSquare(size - 1);
-	//PrintMap();
 	DiamondSquare();
-	//PrintMap();
 }
 
 void DiamondSquareBase::ExecuteDiamondSquare(uint32_t initValuesDistance) {
 	if (initValuesDistance == 0)
 		throw std::runtime_error("Init values distance is 0!");
+	if (initValuesDistance > size - 1)
+		throw std::runtime_error("Init values distance is too big!");
 
 	InitializeDiamondSquare(initValuesDistance);
-	//PrintMap();
 	DiamondSquare();
-	//PrintMap();
 }
 
 void DiamondSquareBase::PrintMap() const {
@@ -57,16 +53,13 @@ void DiamondSquareBase::PrintGrayScaleMap() {
 }
 
 void DiamondSquareBase::CreateGrayScaleMap() {
-	grayScaleMap = new ColorPixel[size * size] {};
+	grayScaleMap = new uint8_t[size * size] {};
 	double min = *std::min_element(map, map + size * size);
 	double max = *std::max_element(map, map + size * size);
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {
-			double channel = map[i * size + j];
-            ColorPixel c{channel, channel, channel, min, max};
-            //ColorPixel c{channel, channel, channel};
-			grayScaleMap[i * size + j] = c;
+			grayScaleMap[i * size + j] = static_cast<uint8_t>(mapValue(min, max, 0, 255, map[i * size + j]));
 		}
 	}
 }
@@ -78,11 +71,17 @@ void DiamondSquareBase::SaveGrayScaleImage(const char* fname, int tileSize) {
 		//PrintGrayScaleMap();
 	}
 
+	std::cout << "Creating grayscale image..." << std::endl;
+
 	BMP image(size * tileSize, size * tileSize, true);
+	ColorPixel color {};
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {
-			image.FillRegion(j * tileSize, i * tileSize, tileSize, tileSize, grayScaleMap[i * size + j], 255);
+			
+			color.B = color.G = color.R	= grayScaleMap[i * size + j];
+
+			image.FillRegion(j * tileSize, i * tileSize, tileSize, color);
 		}
 	}
 	image.Write(fname);
@@ -94,19 +93,21 @@ void DiamondSquareBase::SaveColorImage(const char* fname, int tileSize) {
 		CreateGrayScaleMap();
 	}
 
+	ColorMapping::generateColors();
+
 	BMP image(size * tileSize, size * tileSize, true);
 	ColorPixel color;
-	std::cout << "Creating color matrix..." << std::endl;
+	std::cout << "Creating color image..." << std::endl;
 
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {
 			try {
-				ColorMapping::getColor(grayScaleMap[i * size + j].B, &color);
+				ColorMapping::getColor(grayScaleMap[i * size + j], &color);
 			}catch (std::exception& e) {
 				std::cout << e.what() << std::endl;
 			}
-			image.FillRegion(j * tileSize, i * tileSize, tileSize, tileSize, color, 255);
+			image.FillRegion(j * tileSize, i * tileSize, tileSize, color);
 		}
 	}
 	image.Write(fname);

@@ -22,8 +22,6 @@ void DiamondSquareSequential::InitializeDiamondSquare(uint32_t initValuesDistanc
 
 void DiamondSquareSequential::DiamondSquare() {
 
-	//step = size - 1;
-
 	while (step > 1) {
 		half = step / 2;
 
@@ -59,8 +57,6 @@ void DiamondSquareSequential::DiamondStep(uint32_t x, uint32_t y) {
 
 	value /= 4.0;
 	value += unif(generator) * randomScale;
-	//value = value > 1 ? 1 : value;
-	//value = value < -1 ? -1 : value;
 
 	map[GetIndex(x, y)] = value;
 }
@@ -74,8 +70,6 @@ void DiamondSquareSequential::SquareStep(uint32_t x, uint32_t y) {
 
 	value /= 4.0;
 	value += unif(generator) * randomScale;
-	//value = value > 1 ? 1 : value;
-	//value = value < -1 ? -1 : value;
 
 	map[x * size + y] = value;
 }

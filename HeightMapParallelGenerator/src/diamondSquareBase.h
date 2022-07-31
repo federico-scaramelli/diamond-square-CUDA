@@ -1,7 +1,11 @@
 #pragma once
+#include <map>
+#include <algorithm>
 #include <cstdint>
-#include <iostream>
+
 #include "bmpHandler.h"
+#include "colorMapping.h"
+
 
 class DiamondSquareBase
 {
@@ -41,7 +45,7 @@ protected:
 	virtual void SquareStep(uint32_t x, uint32_t y) = 0;
 
 	double* map;
-	ColorPixel* grayScaleMap = nullptr;
+	uint8_t* grayScaleMap = nullptr;
 
 	uint32_t size;
 	uint32_t step;
