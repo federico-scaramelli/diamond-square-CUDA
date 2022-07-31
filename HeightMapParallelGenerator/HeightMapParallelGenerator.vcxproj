@@ -166,11 +166,11 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\colorMapping.h" />
     <ClInclude Include="src\colorPixel.h" />
     <ClInclude Include="src\diamondSquareBase.h" />
     <ClInclude Include="src\bmpHandler.h" />
     <ClInclude Include="src\diamondSquareSequential.h" />
-    <ClInclude Include="src\include\stb_image_write.h" />
     <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

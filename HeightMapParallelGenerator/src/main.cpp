@@ -3,14 +3,22 @@
 
 int main(int argc, char** argv) {
 
-	const uint32_t size = 513;
+	/*
+	 * TODO: Change grayscale generation -> the array should be of int value instead of Color value
+	 * TODO: Set color extention
+	 * TODO: Change stepSize setting with dedicated setter
+	 */
+
+	const uint32_t size = 2049;
 
 	try {
 		DiamondSquareSequential ds{size};
-		ds.ExecuteDiamondSquare();
+		ds.SetRandomScale(10.0);
+		ds.ExecuteDiamondSquare(512);
 		//ds.PrintMap();
 		//ds.PrintGrayScaleMap();
-		ds.SaveMapOnImage("map.bmp", 1);
+		ds.SaveGrayScaleImage("map.bmp", 1);
+		ds.SaveColorImage("mapColor.bmp", 1);
 	} catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
 		return(0);

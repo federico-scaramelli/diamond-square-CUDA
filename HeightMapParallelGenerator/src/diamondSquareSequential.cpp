@@ -59,8 +59,8 @@ void DiamondSquareSequential::DiamondStep(uint32_t x, uint32_t y) {
 
 	value /= 4.0;
 	value += unif(generator) * randomScale;
-	value = value > 1 ? 1 : value;
-	value = value < -1 ? -1 : value;
+	//value = value > 1 ? 1 : value;
+	//value = value < -1 ? -1 : value;
 
 	map[GetIndex(x, y)] = value;
 }
@@ -74,8 +74,8 @@ void DiamondSquareSequential::SquareStep(uint32_t x, uint32_t y) {
 
 	value /= 4.0;
 	value += unif(generator) * randomScale;
-	value = value > 1 ? 1 : value;
-	value = value < -1 ? -1 : value;
+	//value = value > 1 ? 1 : value;
+	//value = value < -1 ? -1 : value;
 
 	map[x * size + y] = value;
 }

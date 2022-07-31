@@ -12,8 +12,8 @@
     <ClInclude Include="src\bmpHandler.h" />
     <ClInclude Include="src\diamondSquareBase.h" />
     <ClInclude Include="src\diamondSquareSequential.h" />
-    <ClInclude Include="src\include\stb_image_write.h" />
     <ClInclude Include="src\colorPixel.h" />
     <ClInclude Include="src\utils.h" />
+    <ClInclude Include="src\colorMapping.h" />
   </ItemGroup>
 </Project>

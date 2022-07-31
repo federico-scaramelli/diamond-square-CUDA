@@ -13,11 +13,15 @@ public:
 	virtual void ExecuteDiamondSquare();
 	virtual void ExecuteDiamondSquare(uint32_t initValuesDistance);
 
-	uint32_t GetIndex(uint32_t x, uint32_t y) {
+	uint32_t GetIndex(uint32_t x, uint32_t y) const {
 		if (x >= size) x = size - 1;
 		if (y >= size) y = size - 1;
 		
 		return x * size + y;
+	}
+
+	void SetRandomScale(double randomScale) {
+		this->randomScale = randomScale;
 	}
 
 	void PrintMap() const;
@@ -25,7 +29,8 @@ public:
 
 	void CreateGrayScaleMap();
 
-	void SaveMapOnImage(const char* fname, int tileSize);
+	void SaveGrayScaleImage(const char* fname, int tileSize);
+	void SaveColorImage(const char* fname, int tileSize);
 
 	bool CheckSizeAdequate();
 
@@ -42,5 +47,5 @@ protected:
 	uint32_t step;
 	uint32_t half;
 
-	double randomScale = 8.0;
+	double randomScale = 5.0;
 };

@@ -10,27 +10,20 @@ public:
 	uint8_t G;
 	uint8_t R;
 
-	ColorPixel(const char* const hexString) {
-		int n;
-		std::istringstream(hexString) >> std::hex >> n;
-		R = n >> 16 & 0xff;
-		std::cout << (int)R << std::endl;
-		G = n >> 8 & 0xff;
-		std::cout << (int)G << std::endl;
-		B = n & 0xff;
-		std::cout << (int)B << std::endl;
-	}
+	ColorPixel(const char* hexString) {
+		if(hexString[0] == '#') {
+			hexString++;
+		}
 
-	ColorPixel(const std::string& hexString) {
 		int n;
 		std::istringstream(hexString) >> std::hex >> n;
 
 		R = n >> 16 & 0xff;
-		//std::cout << hexString.substr(2, 2) << " = " << (int)R << std::endl;
+		//std::cout << (int)R << std::endl;
 		G = n >> 8 & 0xff;
-		//std::cout << hexString.substr(4, 2) << " = " << (int)G << std::endl;
+		//std::cout << (int)G << std::endl;
 		B = n & 0xff;
-		//std::cout << hexString.substr(6, 2) << " = " << (int)B << std::endl;
+		//std::cout << (int)B << std::endl;
 	}
 
 	ColorPixel(const bool white) {
@@ -51,10 +44,14 @@ public:
 		this->R = R;
 	}
 
-	ColorPixel(double B, double G, double R) {
-		this->B = static_cast<uint8_t> ((B + 1.0) * 255.0 / 2.0);
+	ColorPixel(double B, double G, double R, double min, double max) {
+		/*this->B = static_cast<uint8_t> ((B + 1.0) * 255.0 / 2.0);
 		this->G = static_cast<uint8_t> ((G + 1.0) * 255.0 / 2.0);
-		this->R = static_cast<uint8_t> ((R + 1.0) * 255.0 / 2.0);
+		this->R = static_cast<uint8_t> ((R + 1.0) * 255.0 / 2.0);*/
+
+		this->B = mapValue(min, max, 0, 255, B);
+		this->G = mapValue(min, max, 0, 255, G);
+		this->R = mapValue(min, max, 0, 255, R);
 	}
 
 	ColorPixel() {
