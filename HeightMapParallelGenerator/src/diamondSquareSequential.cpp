@@ -1,23 +1,28 @@
 #include "DiamondSquareSequential.h"
 
+#pragma region Random Generator
+
 std::random_device rd;
 //std::mt19937 gen(0);
 std::mt19937 generator(rd());
 std::uniform_real_distribution<double> unif {-1.0, 1.0};
 
-void DiamondSquareSequential::InitializeDiamondSquare(uint32_t initValuesDistance) {
+#pragma endregion
+
+#pragma region Execution Functions
+
+void DiamondSquareSequential::InitializeDiamondSquare() {
+  std::cout << "Initializing Diamond Square..." << std::endl;
+
 	/*for (int i = 0; i < 100; i++) {
 		std::cout << unif(generator) << std::endl;
 	}*/
-	for (int x = 0; x < size; x += initValuesDistance) {
-		//if (x > size) continue;
-		for (int y = 0; y < size; y += initValuesDistance) {
-			//if (y > size) continue;
+
+	for (uint32_t x = 0; x < size; x += step) {
+		for (uint32_t y = 0; y < size; y += step) {
 			map[GetIndex(x, y)] = unif(generator);  
 		}
 	}
-
-	step = initValuesDistance;
 }
 
 void DiamondSquareSequential::DiamondSquare() {
@@ -73,3 +78,5 @@ void DiamondSquareSequential::SquareStep(uint32_t x, uint32_t y) {
 
 	map[x * size + y] = value;
 }
+
+#pragma endregion

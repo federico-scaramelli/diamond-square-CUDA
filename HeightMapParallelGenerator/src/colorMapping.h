@@ -20,7 +20,6 @@ private:
 	static std::vector<ColorPixel> colors;
 
 public:
-	static void getColor(int value, ColorPixel* const outColor);
-
-	static void generateColors();
+	static void GetColorLerp(int value, ColorPixel* const outColor);
+	static void CacheColorsFromMapping();
 };

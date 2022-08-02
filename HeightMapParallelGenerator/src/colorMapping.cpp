@@ -1,6 +1,7 @@
 #include "colorMapping.h"
 
-void ColorMapping::generateColors() {
+
+void ColorMapping::CacheColorsFromMapping() {
 	std::cout << "Generating color mappings cache..." << std::endl;
 
 	mappingsCount = sizeof(mappings) / sizeof(ColorRangeMap);
@@ -12,11 +13,12 @@ void ColorMapping::generateColors() {
 	mappings[0].colorMinPixel = &colors[count++];
 	colors[count] = ColorPixel(mappings[0].colorMax);
 	mappings[0].colorMaxPixel = &colors[count++];
-	
+
 	for (uint8_t i = 1; i < mappingsCount; i++) {
-		if(std::strcmp(mappings[i - 1].colorMax, mappings[i].colorMin) == 0) {
+		if (std::strcmp(mappings[i - 1].colorMax, mappings[i].colorMin) == 0) {
 			mappings[i].colorMinPixel = mappings[i - 1].colorMaxPixel;
-		} else {
+		}
+		else {
 			colors[count] = ColorPixel(mappings[i].colorMin);
 			mappings[i].colorMinPixel = &colors[count++];
 		}
@@ -27,16 +29,16 @@ void ColorMapping::generateColors() {
 	colors.resize(sizeof(ColorPixel) * count);
 }
 
-void ColorMapping::getColor(const int value, ColorPixel* const outColor) {
+void ColorMapping::GetColorLerp(const int value, ColorPixel* const outColor) {
 	if (outColor == nullptr) {
-			throw std::runtime_error("Output color pointer is nullptr.");
+		throw std::runtime_error("Output color pointer is nullptr.");
 	}
 	if (value < 0 || value > 255) {
 		throw std::runtime_error("Value out of range.");
 	}
 
 	if (colors.empty()) {
-		generateColors();
+		CacheColorsFromMapping();
 	}
 
 	mappingsCount = sizeof(mappings) / sizeof(ColorRangeMap);
@@ -46,23 +48,32 @@ void ColorMapping::getColor(const int value, ColorPixel* const outColor) {
 	for (uint8_t i = 0; i < mappingsCount; i++) {
 		if (value < mappings[i].max) {
 			minVal = i > 0 ? mappings[i - 1].max : 0;
-			outColor->B = static_cast<uint8_t>(mapValue(minVal, mappings[i].max, mappings[i].colorMinPixel->B, mappings[i].colorMaxPixel->B, value));
-			outColor->G = static_cast<uint8_t>(mapValue(minVal, mappings[i].max, mappings[i].colorMinPixel->G, mappings[i].colorMaxPixel->G, value));
-			outColor->R = static_cast<uint8_t>(mapValue(minVal, mappings[i].max, mappings[i].colorMinPixel->R, mappings[i].colorMaxPixel->R, value));
+			auto B = static_cast<uint8_t>(MapValue(minVal, mappings[i].max,
+			                                       mappings[i].colorMinPixel->GetB(), mappings[i].colorMaxPixel->GetB(),
+			                                       value));
+			auto G = static_cast<uint8_t>(MapValue(minVal, mappings[i].max,
+			                                       mappings[i].colorMinPixel->GetG(), mappings[i].colorMaxPixel->GetG(),
+			                                       value));
+			auto R = static_cast<uint8_t>(MapValue(minVal, mappings[i].max,
+			                                       mappings[i].colorMinPixel->GetR(), mappings[i].colorMaxPixel->GetR(),
+			                                       value));
+
+			outColor->SetColor(B, G, R);
 			return;
 		}
 	}
 }
 
-ColorRangeMap ColorMapping::mappings[8] {
-	{"#064273", "#50C1E5", 70},		//Sea
-	{"#BAB280", "#FAE7AC", 78},		//Sand
-	{"#32A74F", "#7BA732", 85},		//Green Grass 
-	{"#7BA732", "#BCBF56", 115},		//Yellow Grass 
-	{"#BCBF56", "#5C8553", 150},		//Hill
-	{"#5C8553", "#80857F", 155},		//Mountain start
-	{"#80857F", "#AEAEAE", 210},		//Mountain
-	{"#c3dcdc", "#ffffff", 255}		//Snow
+
+ColorRangeMap ColorMapping::mappings[8]{
+	{"#064273", "#50C1E5", 70}, //Sea
+	{"#BAB280", "#FAE7AC", 78}, //Sand
+	{"#32A74F", "#7BA732", 85}, //Green Grass 
+	{"#7BA732", "#BCBF56", 115}, //Yellow Grass 
+	{"#BCBF56", "#5C8553", 150}, //Hill
+	{"#5C8553", "#80857F", 155}, //Mountain start
+	{"#80857F", "#AEAEAE", 210}, //Mountain
+	{"#c3dcdc", "#ffffff", 255} //Snow
 
 
 	/*{"#55871E", "#697764", 155, 160},	//Mountain start
@@ -76,5 +87,6 @@ ColorRangeMap ColorMapping::mappings[8] {
 	{"#8A8B87", "#A6A6A3", 200, 210},	//Mountain high*/
 };
 
+//Static members definition
 uint8_t ColorMapping::mappingsCount = 0;
 std::vector<ColorPixel> ColorMapping::colors;

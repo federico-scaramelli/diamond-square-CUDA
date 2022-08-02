@@ -200,6 +200,7 @@ public:
 		}
 	}
 
+	//Fill a region of size 'w x h' with the color defined by '(R, G, B)' and alpha 'A'
 	void FillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h,
 	                uint8_t B, uint8_t G, uint8_t R, uint8_t A) {
 		if (x0 + w > static_cast<uint32_t>(infoHeader.width) || y0 + h > static_cast<uint32_t>(infoHeader.height)) {
@@ -218,6 +219,25 @@ public:
 		}
 	}
 
+	//Fill a region of size 'size' with the grayscale color defined by 'value' and alpha 255
+	void FillRegion(uint32_t x0, uint32_t y0, uint32_t size, uint8_t value) {
+		if (x0 + size > static_cast<uint32_t>(infoHeader.width) || y0 + size > static_cast<uint32_t>(infoHeader.height)) {
+			throw std::runtime_error("The region does not fit in the image!");
+		}
+
+		uint32_t channels = infoHeader.bitsPerPixel / 8;
+		for (uint32_t y = y0; y < y0 + size; ++y) {
+			for (uint32_t x = x0; x < x0 + size; ++x) {
+				data[channels * (y * infoHeader.width + x) + 0] = value;
+				data[channels * (y * infoHeader.width + x) + 1] = value;
+				data[channels * (y * infoHeader.width + x) + 2] = value;
+				if (channels == 4)
+					data[channels * (y * infoHeader.width + x) + 3] = 255;
+			}
+		}
+	}
+
+	//Fill a region of size 'w x h' with color 'color' and alpha 'A'
 	void FillRegion(uint32_t x0, uint32_t y0, uint32_t w, uint32_t h, const ColorPixel& color, uint8_t A) {
 		if (x0 + w > static_cast<uint32_t>(infoHeader.width) || y0 + h > static_cast<uint32_t>(infoHeader.height)) {
 			throw std::runtime_error("The region does not fit in the image!");
@@ -226,15 +246,16 @@ public:
 		uint32_t channels = infoHeader.bitsPerPixel / 8;
 		for (uint32_t y = y0; y < y0 + h; ++y) {
 			for (uint32_t x = x0; x < x0 + w; ++x) {
-				data[channels * (y * infoHeader.width + x) + 0] = color.B;
-				data[channels * (y * infoHeader.width + x) + 1] = color.G;
-				data[channels * (y * infoHeader.width + x) + 2] = color.R;
+				data[channels * (y * infoHeader.width + x) + 0] = color.GetB();
+				data[channels * (y * infoHeader.width + x) + 1] = color.GetG();
+				data[channels * (y * infoHeader.width + x) + 2] = color.GetR();
 				if (channels == 4)
 					data[channels * (y * infoHeader.width + x) + 3] = A;
 			}
 		}
 	}
-
+	
+	//Fill a square region of size 'size' with color 'color' and max alpha 
 	void FillRegion(uint32_t x0, uint32_t y0, uint32_t size, const ColorPixel& color) {
 		if (x0 + size > static_cast<uint32_t>(infoHeader.width) || y0 + size > static_cast<uint32_t>(infoHeader.height)) {
 			throw std::runtime_error("The region does not fit in the image!");
@@ -243,9 +264,9 @@ public:
 		uint32_t channels = infoHeader.bitsPerPixel / 8;
 		for (uint32_t y = y0; y < y0 + size; ++y) {
 			for (uint32_t x = x0; x < x0 + size; ++x) {
-				data[channels * (y * infoHeader.width + x) + 0] = color.B;
-				data[channels * (y * infoHeader.width + x) + 1] = color.G;
-				data[channels * (y * infoHeader.width + x) + 2] = color.R;
+				data[channels * (y * infoHeader.width + x) + 0] = color.GetB();
+				data[channels * (y * infoHeader.width + x) + 1] = color.GetG();
+				data[channels * (y * infoHeader.width + x) + 2] = color.GetR();
 				if (channels == 4)
 					data[channels * (y * infoHeader.width + x) + 3] = 255;
 			}

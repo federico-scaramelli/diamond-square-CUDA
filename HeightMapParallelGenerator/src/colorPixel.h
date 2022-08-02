@@ -1,21 +1,33 @@
 #pragma once
+
+//std headers
 #include <cstdint>
 #include <iostream>
 #include <sstream>
+
+//My headers
 #include "utils.h"
 
-struct ColorPixel {
+class ColorPixel {
 public:
-	uint8_t B;
-	uint8_t G;
-	uint8_t R;
 
+#pragma region Constructors
+
+	//Default constructor
+	ColorPixel(const uint8_t B, const uint8_t G, const uint8_t R) {
+		this->B = B;
+		this->G = G;
+		this->R = R;
+	}
+
+	//Grayscale color constructor
 	ColorPixel(const uint8_t grayValue) {
 		this->B = grayValue;
 		this->G = grayValue;
 		this->R = grayValue;
 	}
 
+	//Hex string constructor
 	ColorPixel(const char* hexString) {
 		if(hexString[0] == '#') {
 			hexString++;
@@ -32,6 +44,14 @@ public:
 		//std::cout << (int)B << std::endl;
 	}
 
+	//Double constructor with values mapping
+	ColorPixel(const double B, const double G, const double R, const double min, const double max) {
+		this->B = MapValue(min, max, 0, 255, B);
+		this->G = MapValue(min, max, 0, 255, G);
+		this->R = MapValue(min, max, 0, 255, R);
+	}
+
+	//Black or white constructor
 	ColorPixel(const bool white) {
 		if (white) {
 			this->B = 255;
@@ -44,27 +64,55 @@ public:
 		}
 	}
 
-	ColorPixel(const uint8_t B, const uint8_t G, const uint8_t R) {
-		this->B = B;
-		this->G = G;
-		this->R = R;
-	}
-
-	ColorPixel(double B, double G, double R, double min, double max) {
-		this->B = mapValue(min, max, 0, 255, B);
-		this->G = mapValue(min, max, 0, 255, G);
-		this->R = mapValue(min, max, 0, 255, R);
-	}
-
+	//Empty constructor (black)
 	ColorPixel() {
 		this->B = 0;
 		this->G = 0;
 		this->R = 0;	
 	}
 
+#pragma endregion
+
+#pragma region Setters and Getters
+
+	//RGB setter
+	void SetColor(const uint8_t B, const uint8_t G, const uint8_t R) {
+		this->B = B;
+		this->G = G;
+		this->R = R;
+	}
+
+	//Grayscale setter
+	void SetColor(const uint8_t grayValue) {
+		this->B = grayValue;
+		this->G = grayValue;
+		this->R = grayValue;
+	}
+
+	//RGB getters
+	uint8_t GetB() const {
+		return B;
+	}
+
+	uint8_t GetG() const {
+		return G;
+	}
+
+	uint8_t GetR() const {
+		return R;
+	}
+
+#pragma endregion
+
+	//Output operator
 	friend std::ostream& operator<<(std::ostream& os, const ColorPixel& c)
 	{
-	    os << "(" << static_cast<int>(c.B) << ")";
+	    os << "RGB: (" << static_cast<int>(c.R) << ", " << static_cast<int>(c.G) << ", " << static_cast<int>(c.B) << "); ";
 	    return os;
 	}
+
+private:
+	uint8_t B;
+	uint8_t G;
+	uint8_t R;
 };

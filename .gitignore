@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 HeightMapParallelGenerator/mapColor.bmp
 HeightMapParallelGenerator/map.bmp
+HeightMapParallelGenerator/*.bmp

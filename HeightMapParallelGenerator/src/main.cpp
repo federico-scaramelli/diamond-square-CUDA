@@ -2,18 +2,13 @@
 #include "DiamondSquareSequential.h"
 
 int main(int argc, char** argv) {
-
-	/*
-	 * TODO: Change stepSize setting with dedicated setter
-	 * TODO: Delete original double matrix after generating the grayscale one
-	 */
-
-	const uint32_t size = 16385;
+  	const uint32_t size = 4097;
 
 	try {
 		DiamondSquareSequential ds{size};
 		ds.SetRandomScale(15.0);
-		ds.ExecuteDiamondSquare(4096);
+		ds.SetInitialStepSize(2048);
+		ds.ExecuteDiamondSquare();
 		//ds.PrintMap();
 		//ds.PrintGrayScaleMap();
 		ds.SaveGrayScaleImage("map.bmp", 1);
