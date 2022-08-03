@@ -1,22 +1,36 @@
 #include "bmpHandler.h"
+#include "settingsList.h"
 #include "DiamondSquareSequential.h"
+#include "timeMeasure.h"
 
-int main(int argc, char** argv) {
-  	const uint32_t size = 4097;
+void run() {
+	uint32_t settingIdx = 4;
 
 	try {
-		DiamondSquareSequential ds{size};
-		ds.SetRandomScale(15.0);
-		ds.SetInitialStepSize(2048);
-		ds.ExecuteDiamondSquare();
+		DiamondSquareSequential ds{diamondSquareSettings[settingIdx].size};
+		ds.SetRandomScale(diamondSquareSettings[settingIdx].randomScale);
+		ds.SetInitialStepSize(diamondSquareSettings[settingIdx].initialStepSize);
+
+		MeasureTimeFn("Algorithm execution: ", 
+					  &ds, &DiamondSquareBase::ExecuteDiamondSquare);
 		//ds.PrintMap();
 		//ds.PrintGrayScaleMap();
-		ds.SaveGrayScaleImage("map.bmp", 1);
-		ds.SaveColorImage("mapColor.bmp", 1);
-	} catch (std::exception& e) {
-		std::cout << e.what() << std::endl;
-		return(0);
+		MeasureTimeFn("Grayscale image generation and save file: ",
+					  &ds, &DiamondSquareBase::SaveGrayScaleImage,
+		              "map.bmp", diamondSquareSettings[settingIdx].imageTileSize);
+		MeasureTimeFn("Color image generation and save file: ",
+					  &ds, &DiamondSquareBase::SaveColorImage,
+		              "mapColor.bmp", diamondSquareSettings[settingIdx].imageTileSize);
 	}
+	catch (std::exception& e) {
+		std::cout << e.what() << std::endl;
+		return;
+	}
+}
 
-	return(0);
+int main(int argc, char** argv) {
+
+	MeasureTimeFn("Total execution time: ", run);
+
+	return (0);
 }

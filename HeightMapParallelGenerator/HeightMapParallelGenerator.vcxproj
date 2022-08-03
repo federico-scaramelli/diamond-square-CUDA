@@ -176,6 +176,8 @@
     <ClInclude Include="src\diamondSquareBase.h" />
     <ClInclude Include="src\bmpHandler.h" />
     <ClInclude Include="src\diamondSquareSequential.h" />
+    <ClInclude Include="src\settingsList.h" />
+    <ClInclude Include="src\timeMeasure.h" />
     <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -16,5 +16,7 @@
     <ClInclude Include="src\colorPixel.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\colorMapping.h" />
+    <ClInclude Include="src\settingsList.h" />
+    <ClInclude Include="src\timeMeasure.h" />
   </ItemGroup>
 </Project>

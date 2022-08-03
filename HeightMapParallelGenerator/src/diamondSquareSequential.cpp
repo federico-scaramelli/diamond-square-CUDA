@@ -5,14 +5,15 @@
 std::random_device rd;
 //std::mt19937 gen(0);
 std::mt19937 generator(rd());
-std::uniform_real_distribution<double> unif {-1.0, 1.0};
+std::uniform_real_distribution<double> unif{-1.0, 1.0};
 
 #pragma endregion
 
 #pragma region Execution Functions
 
 void DiamondSquareSequential::InitializeDiamondSquare() {
-  std::cout << "Initializing Diamond Square..." << std::endl;
+	std::cout << "Initializing Diamond Square [" +
+		std::to_string(size) + " x " + std::to_string(size) + "]..." << std::endl;
 
 	/*for (int i = 0; i < 100; i++) {
 		std::cout << unif(generator) << std::endl;
@@ -20,7 +21,7 @@ void DiamondSquareSequential::InitializeDiamondSquare() {
 
 	for (uint32_t x = 0; x < size; x += step) {
 		for (uint32_t y = 0; y < size; y += step) {
-			map[GetIndex(x, y)] = unif(generator);  
+			map[GetIndex(x, y)] = unif(generator);
 		}
 	}
 }
@@ -43,7 +44,7 @@ void DiamondSquareSequential::DiamondSquare() {
 				SquareStep(x, y);
 			}
 		}
-		
+
 		//PrintMap();
 
 		randomScale /= 2.0;
@@ -69,9 +70,9 @@ void DiamondSquareSequential::DiamondStep(uint32_t x, uint32_t y) {
 void DiamondSquareSequential::SquareStep(uint32_t x, uint32_t y) {
 
 	double value = map[GetIndex(x - half, y)] +
-				map[GetIndex(x + half, y)] +
-				map[GetIndex(x, y - half)] +
-				map[GetIndex(x, y + half)];
+		map[GetIndex(x + half, y)] +
+		map[GetIndex(x, y - half)] +
+		map[GetIndex(x, y + half)];
 
 	value /= 4.0;
 	value += unif(generator) * randomScale;
