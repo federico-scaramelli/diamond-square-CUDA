@@ -1,6 +1,7 @@
 #pragma once
-#include <random>
 #include "../diamondSquareBase.h"
+#include "../../utils/utils.h"
+
 
 class DiamondSquareSequential : public DiamondSquareBase {
 public:

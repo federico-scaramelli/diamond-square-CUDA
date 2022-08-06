@@ -64,11 +64,12 @@ protected:
 
 #pragma region Member Attributes
 
-	protected:
+protected:
 	float* map = nullptr;
 	uint8_t* grayScaleMap = nullptr;
 
 	uint32_t size;
+	uint32_t totalSize;
 	uint32_t step;
 	uint32_t half;
 

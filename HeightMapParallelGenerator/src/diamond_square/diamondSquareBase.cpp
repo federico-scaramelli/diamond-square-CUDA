@@ -6,7 +6,7 @@
 DiamondSquareBase::DiamondSquareBase(const uint32_t size) {
 	this->size = size;
 	CheckSizeAdequate();
-
+	this->totalSize = size * size;
 	this->step = size - 1;
 	this->map = new float[size * size];
 	memset(map, 0.0, sizeof(float) * size * size);
@@ -82,9 +82,9 @@ void DiamondSquareBase::SetInitialStepSize(uint32_t initValuesDistance) {
 #pragma region Image Functions
 
 void DiamondSquareBase::GenerateGrayScaleMap() {
-	grayScaleMap = new uint8_t[size * size]{};
-	float min = *std::min_element(map, map + size * size);
-	float max = *std::max_element(map, map + size * size);
+	grayScaleMap = new uint8_t[totalSize]{};
+	float min = *std::min_element(map, map + totalSize);
+	float max = *std::max_element(map, map + totalSize);
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {

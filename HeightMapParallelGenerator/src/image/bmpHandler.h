@@ -106,7 +106,7 @@ public:
 			}
 
 			//Take the image size from the header and resize the data vector 
-			data.resize(infoHeader.width * infoHeader.height * (infoHeader.bitsPerPixel / sizeof(uint8_t)));
+			data.resize(infoHeader.height * infoHeader.width * (infoHeader.bitsPerPixel / sizeof(uint8_t)));
 
 			//Check if we need to take into account row padding
 			//If not..

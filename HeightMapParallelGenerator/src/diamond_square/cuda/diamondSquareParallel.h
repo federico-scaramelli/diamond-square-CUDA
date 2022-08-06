@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "../diamondSquareBase.h"
+#include "../../utils/utils.h"
 
 class DiamondSquareParallel : public DiamondSquareBase {
 public:
@@ -11,11 +12,20 @@ public:
 
 	void InitializeDiamondSquare() override;
 
+	void GenerateRandomNumbers();
+
+	bool getRandom(float* value);
+
 	void DiamondSquare() override;
 
-	__global__ void DiamondStep() override;
+	void DiamondStep() override;
 	
-	__global__ void SquareStep() override;
+	void SquareStep() override;
 
-	__global__ void InitializeDiamondSquareParallel();
+	void CleanUp();
+
+private:
+	float* randoms = nullptr;
+
+    float* devData = nullptr;
 };
