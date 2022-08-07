@@ -8,23 +8,23 @@
 
 void runSequential()
 {
-	DiamondSquareSettings setting = Size16385_Step4096_Rnd30;
+	DiamondSquareSettings setting = Size65_Step64_Rnd1;
 
 	try {
 		DiamondSquareSequential ds{diamondSquareSettings[setting].size};
 		ds.SetRandomScale(diamondSquareSettings[setting].randomScale);
 		ds.SetInitialStepSize(diamondSquareSettings[setting].initialStepSize);
 
-		MeasureTimeFn("Algorithm execution: ",
+		MeasureTimeFn("Sequential algorithm execution: ",
 		              &ds, &DiamondSquareBase::ExecuteDiamondSquare);
 		//ds.PrintMap();
 		//ds.PrintGrayScaleMap();
-		MeasureTimeFn("Grayscale image generation and save file: ",
+		/*MeasureTimeFn("Grayscale image generation and save file: ",
 		              &ds, &DiamondSquareBase::SaveGrayScaleImage,
 		              "map.bmp", diamondSquareSettings[setting].imageTileSize);
 		MeasureTimeFn("Color image generation and save file: ",
 		              &ds, &DiamondSquareBase::SaveColorImage,
-		              "mapColor.bmp", diamondSquareSettings[setting].imageTileSize);
+		              "mapColor.bmp", diamondSquareSettings[setting].imageTileSize);*/
 	}
 	catch (std::exception& e) {
 		std::cout << e.what() << std::endl;
@@ -34,14 +34,17 @@ void runSequential()
 
 void runParallel()
 {
-	DiamondSquareSettings setting = Size513_Step256_Rnd5;
+	DiamondSquareSettings setting = Size65_Step64_Rnd1;
 
 	try {
 		DiamondSquareParallel ds{diamondSquareSettings[setting].size};
 		ds.SetRandomScale(diamondSquareSettings[setting].randomScale);
 		ds.SetInitialStepSize(diamondSquareSettings[setting].initialStepSize);
 
-		ds.InitializeDiamondSquare();
+		MeasureTimeFn("Parallel algorithm execution: ",
+		              &ds, &DiamondSquareBase::ExecuteDiamondSquare);
+
+		ds.PrintMap();
 
 		/*MeasureTimeFn("Algorithm execution: ", 
 					  &ds, &DiamondSquareBase::ExecuteDiamondSquare);
@@ -62,7 +65,9 @@ void runParallel()
 
 int main(int argc, char** argv)
 {
-	//runParallel();
-	MeasureTimeFn("Total execution time: ", runParallel);
+	runParallel();
+	runSequential();
+	/*MeasureTimeFn("Total parallel execution time: ", runParallel);
+	MeasureTimeFn("Total sequential execution time: ", runSequential);*/
 	return (0);
 }

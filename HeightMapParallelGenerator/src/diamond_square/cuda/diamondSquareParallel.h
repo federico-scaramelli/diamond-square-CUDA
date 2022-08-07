@@ -12,6 +12,7 @@ public:
 
 	void InitializeDiamondSquare() override;
 
+	void PrintRandoms();
 	void GenerateRandomNumbers();
 
 	bool getRandom(float* value);
@@ -27,5 +28,9 @@ public:
 private:
 	float* randoms = nullptr;
 
-    float* devData = nullptr;
+    float* dev_Randoms = nullptr;
+    float* dev_Map = nullptr;
+
+	uint32_t blockSizeDiamond = 1;
+	uint32_t blockSizeSquare = 4;
 };

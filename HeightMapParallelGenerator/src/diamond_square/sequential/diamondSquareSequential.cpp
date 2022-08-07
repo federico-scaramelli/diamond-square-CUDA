@@ -47,7 +47,7 @@ void DiamondSquareSequential::DiamondStep()
 				map[GetIndex(x - half, y + half)] +
 				map[GetIndex(x + half, y + half)];
 
-			value /= 4.0;
+			value /= 4.0f;
 			value += random_float_uniform() * randomScale;
 
 			map[GetIndex(x, y)] = value;
@@ -64,7 +64,7 @@ void DiamondSquareSequential::SquareStep()
 				map[GetIndex(x, y - half)] +
 				map[GetIndex(x, y + half)];
 
-			value /= 4.0;
+			value /= 4.0f;
 			value += random_float_uniform() * randomScale;
 
 			map[x * size + y] = value;

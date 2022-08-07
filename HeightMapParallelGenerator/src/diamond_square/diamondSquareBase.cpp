@@ -8,8 +8,8 @@ DiamondSquareBase::DiamondSquareBase(const uint32_t size) {
 	CheckSizeAdequate();
 	this->totalSize = size * size;
 	this->step = size - 1;
-	this->map = new float[size * size];
-	memset(map, 0.0, sizeof(float) * size * size);
+	this->map = new float[totalSize];
+	memset(map, 0.0, sizeof(float) * totalSize);
 	half = 0;
 }
 
