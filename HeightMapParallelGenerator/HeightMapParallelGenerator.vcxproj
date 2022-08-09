@@ -172,12 +172,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\diamond_square\cuda\diamondSquareParallel.h" />
+    <ClInclude Include="src\diamond_square\parameters\applicationSettings.h" />
     <ClInclude Include="src\diamond_square\parameters\colorMapping.h" />
     <ClInclude Include="src\image\colorPixel.h" />
     <ClInclude Include="src\diamond_square\diamondSquareBase.h" />
     <ClInclude Include="src\image\bmpHandler.h" />
     <ClInclude Include="src\diamond_square\sequential\diamondSquareSequential.h" />
-    <ClInclude Include="src\diamond_square\parameters\settingsList.h" />
+    <ClInclude Include="src\diamond_square\parameters\algorithmSettings.h" />
     <ClInclude Include="src\utils\timeMeasure.h" />
     <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>

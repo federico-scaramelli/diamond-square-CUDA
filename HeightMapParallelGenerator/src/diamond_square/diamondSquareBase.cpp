@@ -84,6 +84,9 @@ void DiamondSquareBase::SetInitialStepSize(uint32_t initValuesDistance) {
 #pragma region Image Functions
 
 void DiamondSquareBase::GenerateGrayScaleMap() {
+  	std::cout << "\n----------MAP GENERATION----------" << std::endl;
+	std::cout << "Creating grayscale matrix..." << std::endl;
+
 	grayScaleMap = new uint8_t[totalSize]{0};
 	float min = *std::min_element(map, map + totalSize);
 	float max = *std::max_element(map, map + totalSize);
@@ -99,21 +102,15 @@ void DiamondSquareBase::GenerateGrayScaleMap() {
 
 void DiamondSquareBase::SaveGrayScaleImage(const char* fname, int tileSize) {
 	if (grayScaleMap == nullptr) {
-		std::cout << "Creating grayscale matrix..." << std::endl;
-		GenerateGrayScaleMap();
-		//PrintGrayScaleMap();
+		MeasureTimeFn ("Grayscale map generated in ", this, &DiamondSquareBase::GenerateGrayScaleMap);
 	}
 
 	std::cout << "Creating grayscale image..." << std::endl;
 
 	BMP image(size * tileSize, size * tileSize, true);
-	//ColorPixel color{};
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {
-
-			//color.SetColor(grayScaleMap[i * size + j]);
-
 			image.FillRegion(j * tileSize, i * tileSize, tileSize, grayScaleMap[i * size + j]);
 		}
 	}
@@ -122,16 +119,15 @@ void DiamondSquareBase::SaveGrayScaleImage(const char* fname, int tileSize) {
 
 void DiamondSquareBase::SaveColorImage(const char* fname, int tileSize) {
 	if (grayScaleMap == nullptr) {
-		std::cout << "Creating grayscale matrix..." << std::endl;
-		GenerateGrayScaleMap();
+		MeasureTimeFn ("Grayscale map generated in ", this, &DiamondSquareBase::GenerateGrayScaleMap);
 	}
 
 	ColorMapping::CacheColorsFromMapping();
 
-	BMP image(size * tileSize, size * tileSize, true);
-	ColorPixel color;
 	std::cout << "Creating color image..." << std::endl;
 
+	BMP image(size * tileSize, size * tileSize, true);
+	ColorPixel color;
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {
@@ -146,9 +142,10 @@ void DiamondSquareBase::SaveColorImage(const char* fname, int tileSize) {
 
 void DiamondSquareBase::ExecuteDiamondSquare() {
 
-	MeasureTimeFn("Initialization time: ", this, &DiamondSquareBase::InitializeDiamondSquare);
+	MeasureTimeFn("\nMap initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);
 
+  	std::cout << "\n----------EXECUTION----------" << std::endl;
 	std::cout << "Executing diamond square..." << std::endl;
 
-	MeasureTimeFn("Execution time: ", this, &DiamondSquareBase::DiamondSquare);
+	MeasureTimeFn("Algorithm terminated in ", this, &DiamondSquareBase::DiamondSquare);
 }

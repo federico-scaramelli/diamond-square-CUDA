@@ -16,8 +16,9 @@
     <ClInclude Include="src\image\colorPixel.h" />
     <ClInclude Include="src\utils\utils.h" />
     <ClInclude Include="src\diamond_square\parameters\colorMapping.h" />
-    <ClInclude Include="src\diamond_square\parameters\settingsList.h" />
+    <ClInclude Include="src\diamond_square\parameters\algorithmSettings.h" />
     <ClInclude Include="src\utils\timeMeasure.h" />
     <ClInclude Include="src\diamond_square\cuda\diamondSquareParallel.h" />
+    <ClInclude Include="src\diamond_square\parameters\applicationSettings.h" />
   </ItemGroup>
 </Project>

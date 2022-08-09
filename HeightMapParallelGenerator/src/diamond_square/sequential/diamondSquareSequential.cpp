@@ -1,11 +1,13 @@
 #include "diamondSquareSequential.h"
+#include "../parameters/applicationSettings.h"
 
 #pragma region Execution Functions
 
 void DiamondSquareSequential::InitializeDiamondSquare()
 {
-	std::cout << "Initializing Diamond Square [" +
-		std::to_string(size) + " x " + std::to_string(size) + "]..." << std::endl;
+	std::cout << "==================SEQUENTIAL DIAMOND SQUARE==================" << std::endl << std::endl;
+  	std::cout << "----------INITIALIZATION----------" << std::endl;
+	std::cout << "Initializing Diamond Square [" << size << " x " << size << "]..." << std::endl;
 	
 	for (uint32_t x = 0; x < size; x += step) {
 		for (uint32_t y = 0; y < size; y += step) {
@@ -22,11 +24,15 @@ void DiamondSquareSequential::DiamondSquare()
 
 		DiamondStep();
 
-		//PrintMap();
+#if PRINT_DIAMOND_STEP_SEQ
+		PrintMap();
+#endif
 
 		SquareStep();
 
-		//PrintMap();
+#if PRINT_SQUARE_STEP_SEQ
+		PrintMap();
+#endif
 
 		randomScale /= 2.0;
 		step /= 2;
