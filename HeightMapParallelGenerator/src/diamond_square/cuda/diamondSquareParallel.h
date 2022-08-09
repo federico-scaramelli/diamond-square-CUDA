@@ -11,16 +11,14 @@ public:
 	DiamondSquareParallel(uint32_t size) : DiamondSquareBase(size) {}
 
 	void InitializeDiamondSquare() override;
-
+	void CopyMapToDevice();
 	void PrintRandoms();
 	void GenerateRandomNumbers();
 
-	bool getRandom(float* value);
+	void getRandom(float* value);
 
 	void DiamondSquare() override;
-
 	void DiamondStep() override;
-	
 	void SquareStep() override;
 
 	void CleanUp();
@@ -32,5 +30,5 @@ private:
     float* dev_Map = nullptr;
 
 	uint32_t blockSizeDiamond = 1;
-	uint32_t blockSizeSquare = 4;
+	uint32_t blockSizeSquare = 2;
 };

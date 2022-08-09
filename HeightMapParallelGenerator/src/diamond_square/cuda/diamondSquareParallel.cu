@@ -30,96 +30,103 @@
 
 #include "curand.h"
 
-void DiamondSquareParallel::PrintRandoms()
+void DiamondSquareParallel::PrintRandoms ()
 {
-	randoms = new float[totalSize];
+	/*randoms = new float[totalSize];
 	CHECK(cudaMemcpy(randoms, dev_Randoms, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
 	auto count = 0;
-	/* Show result */
+	/* Show result #1#
 	for (int i = 0; i < totalSize; i++) {
 		count = getRandom(randoms + i) ? count + 1 : count;
 		//std::cout << randoms[i];
 	}
 	std::cout << count << " negativi" << std::endl;
 	std::cout << totalSize - count << " positivi" << std::endl;
-	delete[] randoms;
+	delete[] randoms;*/
 }
 
-void DiamondSquareParallel::GenerateRandomNumbers()
+void DiamondSquareParallel::GenerateRandomNumbers ()
 {
 	int seed = random_int_uniform();
 	curandGenerator_t generator;
-	CHECK_CURAND(curandCreateGenerator(&generator, CURAND_RNG_PSEUDO_MT19937))
-	CHECK_CURAND(curandSetPseudoRandomGeneratorSeed(generator, seed))
+	CHECK_CURAND (curandCreateGenerator(&generator, CURAND_RNG_PSEUDO_MT19937))
+	CHECK_CURAND (curandSetPseudoRandomGeneratorSeed(generator, seed))
 
 	/* Allocate n floats on device */
-	CHECK(cudaMalloc((void **)&dev_Randoms, totalSize * sizeof(float)))
+	CHECK (cudaMalloc((void **)&dev_Randoms, totalSize * sizeof(float)))
 
 	/* Generate n floats on device */
-	CHECK_CURAND(curandGenerateUniform(generator, dev_Randoms, totalSize))
+	CHECK_CURAND (curandGenerateUniform(generator, dev_Randoms, totalSize))
 
 	//PrintRandoms();
 
 	/* Cleanup */
-	CHECK_CURAND(curandDestroyGenerator(generator))
+	CHECK_CURAND (curandDestroyGenerator(generator))
 }
 
 /* TODO: change it to void */
-inline bool DiamondSquareParallel::getRandom(float* const value)
+inline void DiamondSquareParallel::getRandom (float* const value)
 {
-	bool cond = static_cast<int>(*value * 10) / 1 & 0x01;
+	bool cond = static_cast<int> (*value * 10) / 1 & 0x01;
 	*value = *value * (-1) * cond + *value * !cond;
-	return cond;
+}
+
+__device__ __forceinline__ float getRandomOnDevice (float const value)
+{
+	bool cond = static_cast<int> (value * 10) / 1 & 0x01;
+	return value * (-1) * cond + value * !cond;
 }
 
 #pragma endregion
 
 
-void DiamondSquareParallel::InitializeDiamondSquare()
+void DiamondSquareParallel::InitializeDiamondSquare ()
 {
-	GenerateRandomNumbers();
+	MeasureTimeFn ("Parallel random numbers generation time: ", this, &DiamondSquareParallel::GenerateRandomNumbers);
 
 	/* For now initialize on the CPU side
 	 * TODO: initialize values on the GPU */
 	for (uint32_t x = 0; x < size; x += step) {
 		for (uint32_t y = 0; y < size; y += step) {
-			map[GetIndex(x, y)] = random_float_uniform();
+			map[GetIndex (x, y)] = random_float_uniform();
 		}
 	}
 
-	/* Copy the map on the device memory */
-	CHECK(cudaMalloc(&dev_Map, totalSize * sizeof(float)))
-	CHECK(cudaMemcpy(dev_Map, map, totalSize * sizeof(float), cudaMemcpyHostToDevice))
+	MeasureTimeFn ("Copy initial map to the device time: ", this, &DiamondSquareParallel::CopyMapToDevice);
 }
 
+void DiamondSquareParallel::CopyMapToDevice ()
+{
+	/* Copy the map on the device memory */
+	CHECK (cudaMalloc(&dev_Map, totalSize * sizeof(float)))
+	CHECK (cudaMemcpy(dev_Map, map, totalSize * sizeof(float), cudaMemcpyHostToDevice))
+}
 
-void DiamondSquareParallel::DiamondSquare()
+void DiamondSquareParallel::DiamondSquare ()
 {
 	while (step > 1) {
-		half = step / 2;
-
 		DiamondStep();
 		cudaDeviceSynchronize();
-		CHECK(cudaMemcpy(map, dev_Map, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
-		//PrintMap();
+		CHECK (cudaMemcpy(map, dev_Map, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
+		PrintMap();
 
 		SquareStep();
 		cudaDeviceSynchronize();
-		CHECK(cudaMemcpy(map, dev_Map, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
-		//PrintMap();
+		CHECK (cudaMemcpy(map, dev_Map, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
+		PrintMap();
 
 		randomScale /= 2.0f;
 		step /= 2;
 		blockSizeDiamond *= 2;
-		blockSizeSquare = blockSizeDiamond * (blockSizeDiamond / 2 + 1);
+		blockSizeSquare *= 2;
 	}
 
-	CHECK(cudaMemcpy(map, dev_Map, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
+	CHECK (cudaMemcpy(map, dev_Map, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
 
 	CleanUp();
 }
 
-__device__ __forceinline__ uint32_t GetIndex(uint32_t x, uint32_t y, uint32_t size)
+__device__ __forceinline__ uint32_t GetIndex (uint32_t x, uint32_t y, uint32_t size)
 {
 	x = x >= size ? size - 1 : x;
 	y = y >= size ? size - 1 : y;
@@ -127,7 +134,7 @@ __device__ __forceinline__ uint32_t GetIndex(uint32_t x, uint32_t y, uint32_t si
 	return x * size + y;
 }
 
-__global__ void DiamondStepParallel(float* map, float* randoms, uint32_t size, uint32_t step, float randomScale)
+__global__ void DiamondStepParallel (float* map, float* randoms, uint32_t size, uint32_t step, float randomScale)
 {
 	uint32_t half = step / 2;
 
@@ -136,62 +143,61 @@ __global__ void DiamondStepParallel(float* map, float* randoms, uint32_t size, u
 	thd_X = thd_X * step + half;
 	thd_Y = thd_Y * step + half;
 
-	float val = map[GetIndex(thd_X - half, thd_Y - half, size)] +
-				map[GetIndex(thd_X + half, thd_Y - half, size)] +
-				map[GetIndex(thd_X - half, thd_Y + half, size)] +
-				map[GetIndex(thd_X + half, thd_Y + half, size)];
+	float val = map[GetIndex (thd_X - half, thd_Y - half, size)] +
+		map[GetIndex (thd_X + half, thd_Y - half, size)] +
+		map[GetIndex (thd_X - half, thd_Y + half, size)] +
+		map[GetIndex (thd_X + half, thd_Y + half, size)];
 
 	val /= 4.0f;
-	val += randomScale * randoms[GetIndex(thd_X, thd_Y, size)];
+	val += randomScale * getRandomOnDevice(randoms[GetIndex (thd_X, thd_Y, size)]);
 
-	map[GetIndex(thd_X, thd_Y, size)] = val;
+	map[GetIndex (thd_X, thd_Y, size)] = val;
 }
 
-void DiamondSquareParallel::DiamondStep()
+void DiamondSquareParallel::DiamondStep ()
 {
-  	dim3 blockDimension(blockSizeDiamond, blockSizeDiamond, 1);
-	dim3 gridDimension(1, 1, 1);
-	DiamondStepParallel<<<gridDimension, blockDimension>>>(dev_Map, dev_Randoms, size, step, randomScale);
+	dim3 blockDimension (blockSizeDiamond, blockSizeDiamond, 1);
+	dim3 gridDimension (1, 1, 1);
+	DiamondStepParallel<<<gridDimension, blockDimension>>> (dev_Map, dev_Randoms, size, step, randomScale);
 }
 
-__global__ void SquareStepParallel(float* map, float* randoms, uint32_t size, uint32_t step, float randomScale)
+__global__ void SquareStepParallel (float* map, float* randoms, uint32_t size, uint32_t step, float randomScale)
 {
 	uint32_t half = step / 2;
 
-	uint32_t thd_X = blockIdx.y * blockDim.y + threadIdx.y;
-	uint32_t thd_Y = blockIdx.x * blockDim.x + threadIdx.x;
-	thd_X = thd_X * half;
-	thd_Y = thd_Y * step + (thd_X + half) % step;
+	uint32_t thd_X = blockIdx.x * blockDim.x + threadIdx.x;
+	uint32_t thd_Y = blockIdx.y * blockDim.y + threadIdx.y;
 
-	/*printf("threadIdx:(%d, %d, %d) blockIdx:(%d, %d, %d) blockDim:(%d, %d, %d) \n" 
-	       "XY = (%d, %d)\n", threadIdx.x, threadIdx.y, threadIdx.z, blockIdx.x, blockIdx.y, blockIdx.z,
-		  blockDim.x, blockDim.y, blockDim.z, thd_X, thd_Y);
-		  */
-
-	float val = map[GetIndex(thd_X - half, thd_Y, size)] +
-				map[GetIndex(thd_X + half, thd_Y, size)] +
-				map[GetIndex(thd_X, thd_Y - half, size)] +
-				map[GetIndex(thd_X, thd_Y + half, size)];
+	uint32_t x = thd_X * step * (thd_Y % 2 == 0) +
+		thd_Y * half * (thd_Y % 2 != 0);
+	uint32_t y = (thd_Y * half + half) * (thd_Y % 2 == 0) +
+		thd_X * step * (thd_Y % 2 != 0);
+	
+	float val = map[GetIndex (x - half, y, size)] +
+		map[GetIndex (x + half, y, size)] +
+		map[GetIndex (x, y - half, size)] +
+		map[GetIndex (x, y + half, size)];
 
 	val /= 4.0f;
-	val += randomScale * randoms[GetIndex(thd_X, thd_Y, size)];
+	val += randomScale * getRandomOnDevice(randoms[GetIndex (x, y, size)]);
 
-	map[GetIndex(thd_X, thd_Y, size)] = val;
+	map[GetIndex (x, y, size)] = val;
 }
 
-void DiamondSquareParallel::SquareStep()
+void DiamondSquareParallel::SquareStep ()
 {
-	dim3 blockDimension(blockSizeSquare, blockSizeSquare, 1);
-	dim3 gridDimension(1, 1, 1);
-	SquareStepParallel<<<gridDimension, blockDimension>>>(dev_Map, dev_Randoms, size, step, randomScale);
+	dim3 blockDimension (blockSizeDiamond + 1, blockSizeSquare, 1);
+	std::cout << "Square step (" << blockSizeSquare << ", " << blockSizeDiamond + 1 << ");\n";
+	dim3 gridDimension (1, 1, 1);
+	SquareStepParallel<<<gridDimension, blockDimension>>> (dev_Map, dev_Randoms, size, step, randomScale);
 }
 
-void DiamondSquareParallel::CleanUp()
+void DiamondSquareParallel::CleanUp ()
 {
-	CHECK(cudaFree(dev_Randoms))
-	CHECK(cudaFree(dev_Map))
+	CHECK (cudaFree(dev_Randoms))
+	CHECK (cudaFree(dev_Map))
 }
 
 
-__global__ void InitializeDiamondSquareParallel()
+__global__ void InitializeDiamondSquareParallel ()
 { }

@@ -38,8 +38,8 @@ void DiamondSquareSequential::DiamondSquare()
 
 void DiamondSquareSequential::DiamondStep()
 {
-	for (uint32_t y = half; y < size + half; y += step) {
-		for (uint32_t x = half; x < size + half; x += step) {
+	for (uint32_t x = half; x < size; x += step) {
+		for (uint32_t y = half; y < size; y += step) {
 			float value = 0;
 
 			value = map[GetIndex(x - half, y - half)] +
@@ -67,7 +67,8 @@ void DiamondSquareSequential::SquareStep()
 			value /= 4.0f;
 			value += random_float_uniform() * randomScale;
 
-			map[x * size + y] = value;
+			map[GetIndex(x, y)] = value;
+			std::cout << "SQUARE CAMBIA ELEMENTO: (" << x << ", " << y << ")" << std::endl;
 		}
 	}
 }

@@ -11,6 +11,7 @@ public:
 
 enum DiamondSquareSettings {
 	Size9_Step8_Rnd1,
+	Size33_Step32_Rnd1,
 	Size65_Step64_Rnd1,
 	Size129_Step128_Rnd2,
 	Size257_Step256_Rnd3,
@@ -26,6 +27,7 @@ enum DiamondSquareSettings {
 
 DiamondSquareSetting diamondSquareSettings[] = {
   {9, 8, 1.0, 1},
+  {33, 32, 1.0, 1},
   {65, 64, 1.0, 1},
   {129, 128, 2.0, 1},
   {257, 256, 3.0, 1},

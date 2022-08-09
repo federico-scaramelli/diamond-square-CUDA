@@ -6,9 +6,10 @@
 #include "./diamond_square/cuda/diamondSquareParallel.h"
 #include "./utils/timeMeasure.h"
 
+DiamondSquareSettings setting = Size33_Step32_Rnd1;
+
 void runSequential()
 {
-	DiamondSquareSettings setting = Size65_Step64_Rnd1;
 
 	try {
 		DiamondSquareSequential ds{diamondSquareSettings[setting].size};
@@ -34,8 +35,6 @@ void runSequential()
 
 void runParallel()
 {
-	DiamondSquareSettings setting = Size65_Step64_Rnd1;
-
 	try {
 		DiamondSquareParallel ds{diamondSquareSettings[setting].size};
 		ds.SetRandomScale(diamondSquareSettings[setting].randomScale);
@@ -45,6 +44,9 @@ void runParallel()
 		              &ds, &DiamondSquareBase::ExecuteDiamondSquare);
 
 		ds.PrintMap();
+		MeasureTimeFn("Color image generation and save file: ",
+					  &ds, &DiamondSquareBase::SaveColorImage,
+		              "mapColor.bmp", diamondSquareSettings[setting].imageTileSize);
 
 		/*MeasureTimeFn("Algorithm execution: ", 
 					  &ds, &DiamondSquareBase::ExecuteDiamondSquare);

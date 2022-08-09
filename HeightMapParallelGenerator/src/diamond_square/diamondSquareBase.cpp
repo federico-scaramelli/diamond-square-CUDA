@@ -82,7 +82,7 @@ void DiamondSquareBase::SetInitialStepSize(uint32_t initValuesDistance) {
 #pragma region Image Functions
 
 void DiamondSquareBase::GenerateGrayScaleMap() {
-	grayScaleMap = new uint8_t[totalSize]{};
+	grayScaleMap = new uint8_t[totalSize]{0};
 	float min = *std::min_element(map, map + totalSize);
 	float max = *std::max_element(map, map + totalSize);
 
@@ -143,9 +143,10 @@ void DiamondSquareBase::SaveColorImage(const char* fname, int tileSize) {
 #pragma endregion
 
 void DiamondSquareBase::ExecuteDiamondSquare() {
-	InitializeDiamondSquare();
+
+	MeasureTimeFn("Initialization time: ", this, &DiamondSquareBase::InitializeDiamondSquare);
 
 	std::cout << "Executing diamond square..." << std::endl;
 
-	DiamondSquare();
+	MeasureTimeFn("Execution time: ", this, &DiamondSquareBase::DiamondSquare);
 }

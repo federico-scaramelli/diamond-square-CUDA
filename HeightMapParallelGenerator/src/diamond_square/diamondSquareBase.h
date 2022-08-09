@@ -8,6 +8,7 @@
 //My headers
 #include "../image/bmpHandler.h"
 #include "./parameters/colorMapping.h"
+#include "../utils/timeMeasure.h"
 
 
 class DiamondSquareBase

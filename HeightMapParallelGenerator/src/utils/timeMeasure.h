@@ -4,6 +4,7 @@
 
 struct MeasureTime {
     char* msg;
+
     MeasureTime(char* msg) : _start(std::chrono::high_resolution_clock::now()) {
 	    this->msg = msg;
     }
