@@ -6,18 +6,17 @@ static int MapValue(float fromMin, float fromMax, int toMin, int toMax, float va
 	return static_cast<int>((value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin);
 }
 
-static float random_float_uniform()
+static std::random_device rd;
+static std::mt19937 cpuGenerator(rd());
+
+static float RandomFloatUniform()
 {
-	std::random_device rd;
-	std::mt19937 cpuGenerator(rd());
-	std::uniform_real_distribution<float> unif{-1.0, 1.0};
+	static std::uniform_real_distribution<float> unif{-1.0, 1.0};
 	return unif(cpuGenerator);
 }
 
-static int random_int_uniform()
+static int RandomIntUniform()
 {
-	std::random_device rd;
-	std::mt19937 cpuGenerator(rd());
-	std::uniform_int_distribution<int> unif{-21474836, 21474836};
+	static std::uniform_int_distribution<int> unif{-21474836, 21474836};
 	return unif(cpuGenerator);
 }

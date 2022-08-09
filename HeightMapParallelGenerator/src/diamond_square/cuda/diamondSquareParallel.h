@@ -12,6 +12,7 @@ public:
 
 	void InitializeDiamondSquare() override;
 	void CopyMapToDevice();
+	void CalculateBlockGridSizes ();
 	void PrintRandoms();
 	void GenerateRandomNumbers();
 
@@ -29,6 +30,13 @@ private:
     float* dev_Randoms = nullptr;
     float* dev_Map = nullptr;
 
-	uint32_t blockSizeDiamond = 1;
-	uint32_t blockSizeSquare = 2;
+	/* 2^k -> k = loop step [0, n-1] */
+	uint32_t threadAmount = 1;
+
+	uint32_t blockSizeDiamond = 0;
+	uint32_t blockXSizeSquare = 0;
+	uint32_t blockYSizeSquare = 0;
+
+	uint32_t gridSizeDiamond = 0;
+	uint32_t gridSizeSquare = 0;
 };

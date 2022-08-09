@@ -53,7 +53,7 @@ void DiamondSquareBase::PrintGrayScaleMap() {
 
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {
-			std::cout << grayScaleMap[i * size + j] << ' ';
+			std::cout << (int)grayScaleMap[i * size + j] << ' ';
 		}
 		std::cout << std::endl;
 	}
@@ -73,6 +73,8 @@ void DiamondSquareBase::SetInitialStepSize(uint32_t initValuesDistance) {
 		throw std::runtime_error("Init values distance is 0!");
 	if (initValuesDistance > size - 1)
 		throw std::runtime_error("Init values distance is too big!");
+	if ((size - 1) % initValuesDistance != 0)
+		throw std::runtime_error("Init values distance is not a multiple of the size!");
 
 	step = initValuesDistance;
 }
