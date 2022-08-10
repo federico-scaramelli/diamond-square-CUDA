@@ -16,11 +16,10 @@
 
 #define CUDA_EVENTS_TIMING		0
 
-//#define SQUARE_BLOCK_X_SIZE		17	// 8  or 10
 #define SQUARE_BLOCK_X_SIZE		8   //(MAX_BLOCK_SIZE / 2 + 1)
 #define MAX_BLOCK_SIZE			16	// 16 or 32
 
-#define TESTING_SETTINGS		11
+#define TESTING_SETTINGS		0
 
 #define CONSTANT_MEMORY			0
 

@@ -27,8 +27,6 @@ public:
 	void CleanUp();
 
 private:
-	float* randoms = nullptr;
-
     float* dev_Randoms = nullptr;
     float* dev_Map = nullptr;
 
@@ -42,5 +40,5 @@ private:
 	uint32_t gridSizeDiamond = 0;
 	uint32_t gridSizeXSquare = 0;
 
-	float executionTimeCuda;
+	float executionTimeCuda = 0;
 };
