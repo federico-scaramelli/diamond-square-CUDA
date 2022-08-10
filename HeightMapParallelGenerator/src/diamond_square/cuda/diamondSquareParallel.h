@@ -40,7 +40,7 @@ private:
 	uint32_t blockYSizeSquare = 0;
 
 	uint32_t gridSizeDiamond = 0;
-	uint32_t gridSizeSquare = 0;
+	uint32_t gridSizeXSquare = 0;
 
 	float executionTimeCuda;
 };

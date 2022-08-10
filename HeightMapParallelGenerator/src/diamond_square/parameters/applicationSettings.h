@@ -12,11 +12,17 @@
 #define SAVE_COLOR_IMAGE		0
 
 #define COPY_RESULT_ON_HOST		1
-#define COMPARE					1
+#define COMPARE					0
 
 #define CUDA_EVENTS_TIMING		0
 
-#define TESTING_SETTINGS		0
+//#define SQUARE_BLOCK_X_SIZE		17	// 8  or 10
+#define SQUARE_BLOCK_X_SIZE		8   //(MAX_BLOCK_SIZE / 2 + 1)
+#define MAX_BLOCK_SIZE			16	// 16 or 32
+
+#define TESTING_SETTINGS		11
+
+#define CONSTANT_MEMORY			0
 
 #define GRAYSCALE_CUDA_PATH		"grayscaleCuda.bmp"
 #define COLOR_CUDA_PATH			"colorCuda.bmp"

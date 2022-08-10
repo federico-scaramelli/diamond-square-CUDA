@@ -6,11 +6,15 @@
 #include "./diamond_square/sequential/diamondSquareSequential.h"
 #include "./diamond_square/cuda/diamondSquareParallel.h"
 
-//DiamondSquareSettings setting = Size16385_Step4096_Rnd30;
-DiamondSquareSettings setting = Size513_Step256_Rnd5;
-DiamondSquareParallel parDiamSquare{diamondSquareSettings[setting].size};
-DiamondSquareSequential seqDiamSquare{diamondSquareSettings[setting].size};
-
+#if !TESTING_SETTINGS
+  DiamondSquareSettings setting = Size16385_Step4096_Rnd30;
+  //DiamondSquareSettings setting = Size513_Step256_Rnd5;
+  DiamondSquareParallel parDiamSquare{diamondSquareSettings[setting].size};
+  DiamondSquareSequential seqDiamSquare{diamondSquareSettings[setting].size};
+#else
+  DiamondSquareSequential seqDiamSquare{testingDiamondSquareSettings[TESTING_SETTINGS].size};
+  DiamondSquareParallel parDiamSquare{testingDiamondSquareSettings[TESTING_SETTINGS].size};
+#endif
 double sequentialTime;
 double parallelTime;
 
@@ -23,9 +27,8 @@ void runSequential()
 		seqDiamSquare.SetInitialStepSize(diamondSquareSettings[setting].initialStepSize);
 		//ds.SetInitialStepSize(32);
 #else
-		DiamondSquareSequential ds{testingDiamondSquareSettings[TESTING_SETTINGS].size};
-		ds.SetRandomScale(30.f);
-		ds.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
+		seqDiamSquare.SetRandomScale(testingDiamondSquareSettings[TESTING_SETTINGS].randomScale);
+		seqDiamSquare.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
 #endif
 
 		MeasureTimeFn(&sequentialTime, "\nSequential algorithm execution terminated in ",
@@ -36,14 +39,14 @@ void runSequential()
 #endif
 
 #if SAVE_GRAYSCALE_IMAGE
-		MeasureTimeFn("Grayscale image generation and save file: ",
-					  &ds, &DiamondSquareBase::SaveGrayScaleImage,
+		MeasureTimeFn(nullptr, "Grayscale image generation and save file: ",
+					  &seqDiamSquare, &DiamondSquareBase::SaveGrayScaleImage,
 		              GRAYSCALE_SEQ_PATH, diamondSquareSettings[setting].imageTileSize);
 #endif
 #if SAVE_COLOR_IMAGE
-		MeasureTimeFn("Color image generation and save file: ",
-					  &ds, &DiamondSquareBase::SaveColorImage,
-		              COLOR_SEQ_PATH, diamondSquareSettings[setting].imageTileSize);
+		MeasureTimeFn(nullptr, "Color image generation and save file: ",
+					  &seqDiamSquare, &DiamondSquareBase::SaveColorImage,
+		              COLOR_SEQ_PATH, 1);
 #endif
 	}
 	catch (std::exception& e) {
@@ -61,28 +64,27 @@ void runParallel()
 		//ds.SetRandomScale(100);
 		parDiamSquare.SetInitialStepSize(diamondSquareSettings[setting].initialStepSize);
 		//ds.SetInitialStepSize(32);
-#elif DEBUG_MODE
-		DiamondSquareParallel ds{testingDiamondSquareSettings[TESTING_SETTINGS].size};
-		ds.SetRandomScale(30.f);
-		ds.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
+#else
+		parDiamSquare.SetRandomScale(30.f);
+		parDiamSquare.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
 #endif
 
 		MeasureTimeFn(&parallelTime, "Parallel algorithm execution terminated in ",
 		              &parDiamSquare, &DiamondSquareBase::ExecuteDiamondSquare);
 
 #if PRINT_GRAYSCALE_CUDA
-		ds.PrintGrayScaleMap();
+		parDiamSquare.PrintGrayScaleMap();
 #endif
 
 #if SAVE_GRAYSCALE_IMAGE
-		MeasureTimeFn("Grayscale generated and saved on file in ",
-					  &ds, &DiamondSquareBase::SaveGrayScaleImage,
+		MeasureTimeFn(nullptr, "Grayscale generated and saved on file in ",
+					  &parDiamSquare, &DiamondSquareBase::SaveGrayScaleImage,
 		              GRAYSCALE_CUDA_PATH, diamondSquareSettings[setting].imageTileSize);
 #endif
 #if SAVE_COLOR_IMAGE
-		MeasureTimeFn("Color generated and saved on file in ",
-					  &ds, &DiamondSquareBase::SaveColorImage,
-		              COLOR_CUDA_PATH, diamondSquareSettings[setting].imageTileSize);
+		MeasureTimeFn(nullptr, "Color generated and saved on file in ",
+					  &parDiamSquare, &DiamondSquareBase::SaveColorImage,
+		              COLOR_CUDA_PATH, 1);
 #endif
 
 	}

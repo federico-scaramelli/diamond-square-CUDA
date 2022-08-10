@@ -3,10 +3,10 @@
 #include <iostream>
 
 struct MeasureTime {
-    char* msg;
+    const char* msg;
     double* outputTime;
 
-    MeasureTime(char* msg, double* outputTime) : _start(std::chrono::high_resolution_clock::now()) {
+    MeasureTime(const char* msg, double* outputTime) : _start(std::chrono::high_resolution_clock::now()) {
 	    this->msg = msg;
         this->outputTime = outputTime;
     }
@@ -25,7 +25,7 @@ struct MeasureTime {
 };
 
 template <class T, class F, class... Args>
-auto MeasureTimeFn(double* outputTime, char* msg, T *t, F &&fn, Args&&... args)
+auto MeasureTimeFn(double* outputTime, const char* msg, T *t, F &&fn, Args&&... args)
 {
     MeasureTime timer(msg, outputTime);
 
@@ -33,7 +33,7 @@ auto MeasureTimeFn(double* outputTime, char* msg, T *t, F &&fn, Args&&... args)
 }
 
 template <class F, class... Args>
-auto MeasureTimeFn(double* outputTime, char* msg, F &&fn, Args&&... args)
+auto MeasureTimeFn(double* outputTime, const char* msg, F &&fn, Args&&... args)
 {
 	MeasureTime timer(msg, outputTime);
 
