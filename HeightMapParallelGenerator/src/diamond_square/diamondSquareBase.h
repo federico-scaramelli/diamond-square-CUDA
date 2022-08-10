@@ -29,6 +29,7 @@ public:
 
 	void CheckSizeAdequate();
 	uint32_t GetIndex(uint32_t x, uint32_t y) const;
+	double* GetExecutionTime() { return &executionTime; }
 
 	void PrintMap() const;
 	void PrintGrayScaleMap();
@@ -75,6 +76,8 @@ protected:
 	uint32_t half;
 
 	float randomScale = 5.0;
+
+	double executionTime;
 
 #pragma endregion
 };

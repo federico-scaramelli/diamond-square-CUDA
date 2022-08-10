@@ -1,16 +1,20 @@
 #include "diamondSquareBase.h"
-
+#include "parameters/applicationSettings.h"
+#include "./cuda/diamondSquareParallel.h"
 
 #pragma region Constructors
 
-DiamondSquareBase::DiamondSquareBase(const uint32_t size) {
+DiamondSquareBase::DiamondSquareBase(const uint32_t size)
+{
 	this->size = size;
 	CheckSizeAdequate();
 	this->totalSize = size * size;
 	this->step = size - 1;
 	this->map = new float[totalSize];
-	memset(map, 0.0, sizeof(float) * totalSize);
+	memset (map, 0.0, sizeof (float) * totalSize);
 	half = 0;
+
+	executionTime = 0;
 }
 
 DiamondSquareBase::~DiamondSquareBase() {
@@ -102,7 +106,7 @@ void DiamondSquareBase::GenerateGrayScaleMap() {
 
 void DiamondSquareBase::SaveGrayScaleImage(const char* fname, int tileSize) {
 	if (grayScaleMap == nullptr) {
-		MeasureTimeFn ("Grayscale map generated in ", this, &DiamondSquareBase::GenerateGrayScaleMap);
+		MeasureTimeFn (nullptr, "Grayscale map generated in ", this, &DiamondSquareBase::GenerateGrayScaleMap);
 	}
 
 	std::cout << "Creating grayscale image..." << std::endl;
@@ -119,7 +123,7 @@ void DiamondSquareBase::SaveGrayScaleImage(const char* fname, int tileSize) {
 
 void DiamondSquareBase::SaveColorImage(const char* fname, int tileSize) {
 	if (grayScaleMap == nullptr) {
-		MeasureTimeFn ("Grayscale map generated in ", this, &DiamondSquareBase::GenerateGrayScaleMap);
+		MeasureTimeFn (nullptr, "Grayscale map generated in ", this, &DiamondSquareBase::GenerateGrayScaleMap);
 	}
 
 	ColorMapping::CacheColorsFromMapping();
@@ -142,10 +146,23 @@ void DiamondSquareBase::SaveColorImage(const char* fname, int tileSize) {
 
 void DiamondSquareBase::ExecuteDiamondSquare() {
 
-	MeasureTimeFn("\nMap initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);
+	MeasureTimeFn (nullptr, "\nMap initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);
 
   	std::cout << "\n----------EXECUTION----------" << std::endl;
 	std::cout << "Executing diamond square..." << std::endl;
 
-	MeasureTimeFn("Algorithm terminated in ", this, &DiamondSquareBase::DiamondSquare);
+	MeasureTimeFn (&executionTime, "Algorithm terminated in ", this, &DiamondSquareBase::DiamondSquare);
+
+	#if CUDA_EVENTS_TIMING
+		if (dynamic_cast<DiamondSquareParallel*>(this) != nullptr) {
+			std::cout << std::endl;
+			std::cout << "CUDA Events measured Diamond Square parallel time is " << 
+			  *(dynamic_cast<DiamondSquareParallel*>(this)->GetExecutionTimeCuda()) << std::endl;
+			std::cout << "and the difference is only equal to " << 
+			  *GetExecutionTime() - *(dynamic_cast<DiamondSquareParallel*>(this)->GetExecutionTimeCuda());
+		}
+	#endif
+
+  	std::cout << "\n\n----------TOTAL EXECUTION TIME----------" << std::endl;
+
 }

@@ -22,6 +22,8 @@ public:
 	void DiamondStep() override;
 	void SquareStep() override;
 
+	float* GetExecutionTimeCuda() { return &executionTimeCuda; }
+
 	void CleanUp();
 
 private:
@@ -39,4 +41,6 @@ private:
 
 	uint32_t gridSizeDiamond = 0;
 	uint32_t gridSizeSquare = 0;
+
+	float executionTimeCuda;
 };

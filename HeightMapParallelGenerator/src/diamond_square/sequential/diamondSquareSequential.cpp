@@ -34,7 +34,7 @@ void DiamondSquareSequential::DiamondSquare()
 		PrintMap();
 #endif
 
-		randomScale /= 2.0;
+		randomScale /= 2.f;
 		step /= 2;
 	}
 }

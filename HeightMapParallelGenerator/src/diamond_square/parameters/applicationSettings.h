@@ -14,6 +14,8 @@
 #define COPY_RESULT_ON_HOST		1
 #define COMPARE					1
 
+#define CUDA_EVENTS_TIMING		0
+
 #define TESTING_SETTINGS		0
 
 #define GRAYSCALE_CUDA_PATH		"grayscaleCuda.bmp"

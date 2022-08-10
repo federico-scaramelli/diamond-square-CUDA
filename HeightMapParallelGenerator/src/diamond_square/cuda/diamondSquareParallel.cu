@@ -103,8 +103,8 @@ void DiamondSquareParallel::InitializeDiamondSquare ()
   	std::cout << "==================PARALLEL DIAMOND SQUARE==================" << std::endl << std::endl;
   	std::cout << "----------INITIALIZATION----------" << std::endl;
 	std::cout << "Initializing Diamond Square [" << size << " x " << size << "]..." << std::endl;
-	MeasureTimeFn ("Random number set generated in ", this, &DiamondSquareParallel::GenerateRandomNumbers);
-	MeasureTimeFn ("Initial map copied in the device memory in ", this, &DiamondSquareParallel::CopyMapToDevice);
+	MeasureTimeFn (nullptr, "Random number set generated in ", this, &DiamondSquareParallel::GenerateRandomNumbers);
+	MeasureTimeFn (nullptr, "Initial map copied in the device memory in ", this, &DiamondSquareParallel::CopyMapToDevice);
 	
 	threadAmount = (size - 1) / step;
 	uint32_t blockSize = threadAmount <= 16 ? threadAmount : 16;
@@ -139,21 +139,26 @@ void DiamondSquareParallel::CalculateBlockGridSizes ()
 {
 	/*			  2^k			  or			  16			  */
 	blockSizeDiamond = threadAmount <= 16 ? threadAmount : 16;
-	/*		(2^k + 1) x 2^(k+1)	  or			 9 x 16
+	/*		(2^k + 1) x 2^(k+1)	  or			 8 x 16
 	*		        k <= 3					     k > 3			  */
-	blockXSizeSquare = threadAmount <= 8 ? blockSizeDiamond + 1 : 9;
-	/*		(2^k + 1) x 2^(k+1)	  or			 9 x 16
-	*			   k <= 3						 k > 3			  */
+	blockXSizeSquare = threadAmount <= 8 ? blockSizeDiamond + 1 : 8;
 	blockYSizeSquare = threadAmount <= 8 ? threadAmount * 2 : blockSizeDiamond;
 
 	/*				  1			  or			2^k / 16		  */
 	gridSizeDiamond = threadAmount <= 8 ? 1 : threadAmount / 16;
-	/* 9 x 16 block amount =  (2^k / 16)  /	  ceil(2^k / 9)		  */
-	gridSizeSquare = threadAmount < 16 ? 1 : (threadAmount + 9) / 9;
+	/* 9 x 16 block amount =  (2^k / 16)  /	  ceil(2^k / 8)		  */
+	gridSizeSquare = threadAmount < 16 ? 1 : (threadAmount + 8) / 8;
 }
 
 void DiamondSquareParallel::DiamondSquare ()
 {
+#if CUDA_EVENTS_TIMING
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord( start, 0 );
+#endif
+
 	while (step > 1) {
 		CalculateBlockGridSizes();
 
@@ -183,6 +188,15 @@ void DiamondSquareParallel::DiamondSquare ()
 #endif
 
 	CleanUp();
+
+#if CUDA_EVENTS_TIMING
+	cudaEventRecord( stop, 0 );
+	cudaEventSynchronize( stop );
+
+	cudaEventElapsedTime( &executionTimeCuda, start, stop );
+	cudaEventDestroy( start );
+	cudaEventDestroy( stop );
+#endif
 }
 
 __global__ void DiamondStepParallel (float* map, float* randoms, uint32_t size, uint32_t step, float randomScale)
