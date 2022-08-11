@@ -1,22 +1,43 @@
 #pragma once
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 #include <stdio.h>
 
 #include "../diamondSquareBase.h"
 #include "../../utils/utils.h"
+
+#pragma region CheckCUDACalls
+
+#define CHECK_CURAND(call)                                                     \
+{                                                                              \
+    curandStatus_t err;                                                        \
+    if ((err = (call)) != CURAND_STATUS_SUCCESS)                               \
+    {                                                                          \
+        fprintf(stderr, "Got CURAND error %d at %s:%d\n", err, __FILE__,       \
+                __LINE__);                                                     \
+        exit(1);                                                               \
+    }                                                                          \
+}
+
+#define CHECK(call)                                                            \
+{                                                                              \
+    const cudaError_t error = call;                                            \
+    if (error != cudaSuccess)                                                  \
+    {                                                                          \
+        fprintf(stderr, "Error: %s:%d, ", __FILE__, __LINE__);                 \
+        fprintf(stderr, "code: %d, reason: %s\n", error,                       \
+                cudaGetErrorString(error));                                    \
+    }                                                                          \
+}
+
+#pragma endregion
 
 class DiamondSquareParallel : public DiamondSquareBase {
 public:
 	DiamondSquareParallel(uint32_t size) : DiamondSquareBase(size) {}
 
 	void InitializeDiamondSquare() override;
-	void CopyMapToDevice();
 	void CalculateBlockGridSizes ();
 	void PrintRandoms();
 	void GenerateRandomNumbers();
-
-	void getRandom(float* value);
 
 	void DiamondSquare() override;
 	void DiamondStep() override;
@@ -26,8 +47,7 @@ public:
 
 	void CleanUp();
 
-private:
-    float* dev_Randoms = nullptr;
+protected:
     float* dev_Map = nullptr;
 
 	/* 2^k -> k = loop step [0, n-1] */
