@@ -78,14 +78,14 @@ void runParallel ()
 	               &parDiamSquare, &DiamondSquareBase::ExecuteDiamondSquare);
 
 #if TEST_MAP_FUNC
-	int* test = new int[parDiamSquare.totalSize]{0};
+	/*MeasureTimeFn (nullptr, "Double values mapped on int values in ",
+				   &parDiamSquare, &DiamondSquareParallel::MapValuesToIntRange, 
+				   0, 255);*/
 	MeasureTimeFn (nullptr, "Double values mapped on int values in ",
-				   &parDiamSquare, &DiamondSquareBase::MapValuesToIntRange, 
-				   0, 1000, test);
-	/*for (int i = 0; i < parDiamSquare.totalSize; ++i) {
-		std::cout << test[i] << " ";
-	}*/
-	delete[] test;
+				   &parDiamSquare, &DiamondSquareParallel::MapValuesToGrayScale);
+
+	/*parDiamSquare.PrintIntMap();
+	parDiamSquare.PrintMap();*/
 #endif
 
 #if PRINT_GRAYSCALE_CUDA
@@ -96,6 +96,8 @@ void runParallel ()
 	MeasureTimeFn(nullptr, "Grayscale generated and saved on file in ",
 				  &parDiamSquare, &DiamondSquareBase::SaveGrayScaleImage,
 	              GRAYSCALE_CUDA_PATH, diamondSquareSettings[setting].imageTileSize);
+	parDiamSquare.GenerateGrayScaleMap();
+	parDiamSquare.SaveGrayScaleImage ("prova.bmp", 1);
 #endif
 #if SAVE_COLOR_IMAGE
 	MeasureTimeFn (nullptr, "Color generated and saved on file in ",

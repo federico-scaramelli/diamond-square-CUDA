@@ -33,7 +33,8 @@ public:
 
 	void PrintMap() const;
 	void PrintGrayScaleMap();
-	
+	void PrintIntMap ();
+
 #pragma endregion
 
 #pragma region Setter Functions
@@ -63,7 +64,7 @@ protected:
 	virtual void DiamondSquare() = 0;
 	virtual void DiamondStep() = 0;
 	virtual void SquareStep() = 0;
-	
+
 #pragma endregion
 
 public:
@@ -74,6 +75,7 @@ public:
 protected:
 	float* map = nullptr;
 	uint8_t* grayScaleMap = nullptr;
+	int* intMap = nullptr;
 
 	uint32_t size;
 	uint32_t step;

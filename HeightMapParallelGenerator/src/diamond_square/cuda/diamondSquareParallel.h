@@ -36,6 +36,11 @@ class DiamondSquareParallel : public DiamondSquareBase {
 public:
 	DiamondSquareParallel(uint32_t size) : DiamondSquareBase(size) {}
 
+	~DiamondSquareParallel() override
+	{
+		CleanUp();
+	}
+
 	void AllocateMapOnDevice ();
 	void InitializeDiamondSquare() override;
 	void ComputeBlockGridSizes ();
@@ -48,7 +53,7 @@ public:
 	void SquareStep() override;
 
 	void MapValuesToGrayScale () override;
-	void MapValuesToIntRange (int toMin, int toMax, int* outputMap) override;
+	void MapValuesToIntRange (int toMin, int toMax);
 
 	float* GetExecutionTimeCuda() { return &executionTimeCuda; }
 
@@ -56,6 +61,13 @@ public:
 
 protected:
     float* dev_Map = nullptr;
+    uint8_t* dev_GrayScaleMap = nullptr;
+    int* dev_IntMap = nullptr;
+	float* dev_Min = nullptr;
+	float* dev_Max = nullptr;
+
+	float min = 0;
+	float max = 0;
 
 	curandStateMRG32k3a* dev_MRGStates;
 
@@ -69,6 +81,6 @@ protected:
 	uint32_t gridSizeDiamond = 0;
 	uint32_t gridSizeXSquare = 0;
 	uint32_t gridSizeYSquare = 0;
-
+	
 	float executionTimeCuda = 0;
 };

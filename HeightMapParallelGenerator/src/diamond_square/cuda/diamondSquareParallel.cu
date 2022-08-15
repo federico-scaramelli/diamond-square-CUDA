@@ -1,7 +1,7 @@
-﻿#include "diamondSquareParallel.h"
-#include "../parameters/applicationSettings.h"
-#include "cuda_runtime.h"
+﻿#include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include "diamondSquareParallel.h"
+#include "../parameters/applicationSettings.h"
 
 __device__ __forceinline__ uint32_t GetIndexOnDevice (uint32_t x, uint32_t y, uint32_t size)
 {
@@ -115,6 +115,8 @@ __device__ __forceinline__ float GetRandomOnDevice (float const value)
 void DiamondSquareParallel::AllocateMapOnDevice()
 {
 	CHECK (cudaMalloc ((void**)&dev_Map, totalSize * sizeof(float)))
+	CHECK (cudaMalloc ((void**)&dev_Min, sizeof(float)))
+	CHECK (cudaMalloc ((void**)&dev_Max, sizeof(float)))
 }
 
 void DiamondSquareParallel::InitializeDiamondSquare ()
@@ -137,6 +139,7 @@ void DiamondSquareParallel::InitializeDiamondSquare ()
 }
 
 #pragma endregion
+
 
 
 #pragma region Execution
@@ -197,8 +200,6 @@ void DiamondSquareParallel::DiamondSquare ()
 	CHECK (cudaMemcpy(map, dev_Map, totalSize * sizeof(float), cudaMemcpyDeviceToHost))
 #endif
 
-	CleanUp();
-
 #if CUDA_EVENTS_TIMING
 	CHECK (cudaEventRecord( stop, 0 ))
 	CHECK (cudaEventSynchronize( stop ))
@@ -209,7 +210,7 @@ void DiamondSquareParallel::DiamondSquare ()
 #endif
 }
 
-__global__ void DiamondStepParallel (float* map, uint32_t size, uint32_t step, float randomScale)
+__global__ void DiamondStepParallel (float* map, uint32_t size, uint32_t step, float randomScale, float* min, float* max)
 {
 	uint32_t x = blockIdx.y * blockDim.y + threadIdx.y;
 	uint32_t y = blockIdx.x * blockDim.x + threadIdx.x;
@@ -222,12 +223,16 @@ __global__ void DiamondStepParallel (float* map, uint32_t size, uint32_t step, f
 		map[GetIndexOnDevice (x + (step / 2), y + (step / 2), size)];
 
 	val /= 4.0f;
+	val += (-1.0f + map[GetIndexOnDevice (x, y, size)] * 2.0f) * randomScale;
 
 	//map[GetIndexOnDeviceOnDevice (x, y, size)] = GetRandomOnDevice(map[GetIndexOnDeviceOnDevice (x, y, size)]) * randomScale + val;
-	map[GetIndexOnDevice (x, y, size)] = (-1.0f + map[GetIndexOnDevice (x, y, size)] * 2.0f) * randomScale + val;
+	map[GetIndexOnDevice (x, y, size)] = val;
+
+	/*AtomicMinFloat(min, val);
+	AtomicMaxFloat(max, val);*/
 }
 
-__global__ void SquareStepParallel (float* map, uint32_t size, uint32_t step, float randomScale)
+__global__ void SquareStepParallel (float* map, uint32_t size, uint32_t step, float randomScale, float* min, float* max)
 {
 	uint32_t thd_X = blockIdx.x * blockDim.x + threadIdx.x;
 	uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -247,9 +252,13 @@ __global__ void SquareStepParallel (float* map, uint32_t size, uint32_t step, fl
 		map[GetIndexOnDevice (x, y + (step / 2), size)];
 
 	val /= 4.0f;
+	val += (-1.0f + map[GetIndexOnDevice (x, y, size)] * 2.0f) * randomScale;
 
 	//map[GetIndexOnDeviceOnDevice (x, y, size)] = GetRandomOnDevice(map[GetIndexOnDeviceOnDevice (x, y, size)]) * randomScale + val;
-	map[GetIndexOnDevice (x, y, size)] = (-1.0f + map[GetIndexOnDevice (x, y, size)] * 2.0f) * randomScale + val;
+	map[GetIndexOnDevice (x, y, size)] = val;
+
+	/*AtomicMinFloat(min, val);
+	AtomicMaxFloat(max, val);*/
 }
 
 void DiamondSquareParallel::DiamondStep ()
@@ -257,7 +266,7 @@ void DiamondSquareParallel::DiamondStep ()
 	dim3 blockDimension (blockSizeDiamond, blockSizeDiamond, 1);
 	dim3 gridDimension (gridSizeDiamond, gridSizeDiamond, 1);
 
-	DiamondStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale);
+	DiamondStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale, dev_Min, dev_Max);
 }
 
 void DiamondSquareParallel::SquareStep ()
@@ -265,7 +274,7 @@ void DiamondSquareParallel::SquareStep ()
 	dim3 blockDimension (blockXSizeSquare, blockYSizeSquare, 1);
 	dim3 gridDimension (gridSizeXSquare, gridSizeYSquare, 1);
 
-	SquareStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale);
+	SquareStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale, dev_Min, dev_Max);
 }
 
 #pragma endregion
@@ -273,45 +282,126 @@ void DiamondSquareParallel::SquareStep ()
 
 #pragma region Values Mapping
 
-//__device__ __forceinline__ float atomicMinFloat(float* addr, float value) {
-//    // Source: https://stackoverflow.com/questions/17399119/how-do-i-use-atomicmax-on-floating-point-values-in-cuda/51549250#51549250
-//    float old;
-//    old = (value >= 0) ? __int_as_float(atomicMin((int*)addr, __float_as_int(value))) :
-//        __uint_as_float(atomicMax((unsigned int*)addr, __float_as_uint(value)));
-//    return old;
-//}
+__device__ __forceinline__ float AtomicMinFloat (float * addr, float value) {
+        float old;
+        old = (value >= 0) ? __int_as_float(atomicMin((int *)addr, __float_as_int(value))) :
+             __uint_as_float(atomicMax((unsigned int *)addr, __float_as_uint(value)));
+
+        return old;
+}
+
+
+__device__ __forceinline__ float AtomicMaxFloat (float * addr, float value) {
+    float old;
+    old = (value >= 0) ? __int_as_float(atomicMax((int *)addr, __float_as_int(value))) :
+         __uint_as_float(atomicMin((unsigned int *)addr, __float_as_uint(value)));
+
+    return old;
+}
+
+
+__global__ void ComputeMinMax(float* map, float* myMin, float *myMax, int size) {
+    
+    __shared__ float blockMin[BLOCK_SIZE_1D];
+    __shared__ float blockMax[BLOCK_SIZE_1D];
+
+    int linearIdx = blockIdx.x * blockDim.x + threadIdx.x;
+
+	bool cond = linearIdx >= size * size;
+	blockMin[threadIdx.x] = cond ? FLT_MAX : blockMin[threadIdx.x];
+    blockMax[threadIdx.x] = cond ? -FLT_MAX : blockMax[threadIdx.x];
+    if (cond) {
+        return;
+    }
+	
+    blockMin[threadIdx.x] = map[linearIdx];
+    blockMax[threadIdx.x] = map[linearIdx];
+    __syncthreads();
+
+    for (int stride = blockDim.x / 2; stride > 32; stride >>= 1) {
+        if (threadIdx.x < stride)
+            blockMin[threadIdx.x] = min(blockMin[threadIdx.x], blockMin[threadIdx.x + stride]);
+        if (threadIdx.x < stride)
+            blockMax[threadIdx.x] = max(blockMax[threadIdx.x], blockMax[threadIdx.x + stride]);
+        __syncthreads();
+    }
+
+	if (threadIdx.x < 32) {
+        volatile float *vMin = blockMin;
+        volatile float *vMax = blockMax;
+        vMin[threadIdx.x] = min(vMin[threadIdx.x], vMin[threadIdx.x + 32]);
+        vMin[threadIdx.x] = min(vMin[threadIdx.x], vMin[threadIdx.x + 16]);
+        vMin[threadIdx.x] = min(vMin[threadIdx.x], vMin[threadIdx.x + 8]);
+        vMin[threadIdx.x] = min(vMin[threadIdx.x], vMin[threadIdx.x + 4]);
+        vMin[threadIdx.x] = min(vMin[threadIdx.x], vMin[threadIdx.x + 2]);
+        vMin[threadIdx.x] = min(vMin[threadIdx.x], vMin[threadIdx.x + 1]);
+        vMax[threadIdx.x] = max(vMax[threadIdx.x], vMax[threadIdx.x + 32]);
+        vMax[threadIdx.x] = max(vMax[threadIdx.x], vMax[threadIdx.x + 16]);
+        vMax[threadIdx.x] = max(vMax[threadIdx.x], vMax[threadIdx.x + 8]);
+        vMax[threadIdx.x] = max(vMax[threadIdx.x], vMax[threadIdx.x + 4]);
+        vMax[threadIdx.x] = max(vMax[threadIdx.x], vMax[threadIdx.x + 2]);
+        vMax[threadIdx.x] = max(vMax[threadIdx.x], vMax[threadIdx.x + 1]);
+    }
+	
+    if (threadIdx.x == 0) AtomicMinFloat(myMin, blockMin[0]); 
+    if (threadIdx.x == 0) AtomicMaxFloat(myMax, blockMax[0]); 
+}
+
+__global__ void MapFloatToIntRange(float* map, int* outputMap, float* min, float *max, int toMin, int toMax, int size) {
+    
+    int linearIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (linearIdx >= size * size) return;
+	
+	int value = (int)((map[linearIdx] - *min) / (*max - *min) * (toMax - toMin) + toMin);
+	
+    outputMap[linearIdx] = value;
+}
+
+__global__ void MapFloatToGrayScale(float* map, uint8_t* grayScaleMap, float* min, float *max, int toMin, int toMax, int size) {
+    
+    int linearIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (linearIdx >= size * size) return;
+	
+	int value = (int)((map[linearIdx] - *min) / (*max - *min) * (toMax - toMin) + toMin);
+	
+    grayScaleMap[linearIdx] = value;
+}
 
 void DiamondSquareParallel::MapValuesToGrayScale ()
 {
-	grayScaleMap = new uint8_t[totalSize]{ 0 };
-	auto minmax = std::minmax_element (map, map + totalSize);
+	std::cout << "Mapping values to gray scale..." << std::endl;
+	
+	CHECK (cudaMalloc ((void**) &dev_GrayScaleMap, totalSize * sizeof(uint8_t)))
 
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
-			grayScaleMap[i * size + j] = static_cast<uint8_t> (MapValue
-				(*minmax.first, *minmax.second,
-				 0, 255, map[i * size + j]));
-		}
-	}
+	int gridSize = (totalSize + BLOCK_SIZE_1D - 1) / BLOCK_SIZE_1D;
+	ComputeMinMax<<<gridSize, BLOCK_SIZE_1D>>> (dev_Map, dev_Min, dev_Max, size);
+	CHECK (cudaMemcpy (&min, dev_Min, sizeof(float), cudaMemcpyDeviceToHost))
+	CHECK (cudaMemcpy (&max, dev_Max, sizeof(float), cudaMemcpyDeviceToHost))
+	
+	cudaDeviceSynchronize();
+	MapFloatToGrayScale<<<gridSize, BLOCK_SIZE_1D>>> (dev_Map, dev_GrayScaleMap, dev_Min, dev_Max, 0, 255, size);
 
-	if (DELETE_DOUBLE_MAP)
-		DeleteDoubleMap();
+	grayScaleMap = new uint8_t[totalSize]{0};
+	CHECK (cudaMemcpy (grayScaleMap, dev_GrayScaleMap, totalSize * sizeof(uint8_t), cudaMemcpyDeviceToHost))
 }
 
-void DiamondSquareParallel::MapValuesToIntRange (int toMin, int toMax, int* outputMap)
+void DiamondSquareParallel::MapValuesToIntRange (int toMin, int toMax)
 {
 	std::cout << "\n---------- VALUES MAPPING ----------" << std::endl;
 	std::cout << "Mapping values..." << std::endl;
+	
+	CHECK (cudaMalloc ((void**) &dev_IntMap, totalSize * sizeof(int)))
 
-	auto minmax = std::minmax_element (map, map + totalSize);
+	int gridSize = (totalSize + BLOCK_SIZE_1D - 1) / BLOCK_SIZE_1D;
+	ComputeMinMax<<<gridSize, BLOCK_SIZE_1D>>> (dev_Map, dev_Min, dev_Max, size);
+	CHECK (cudaMemcpy (&min, dev_Min, sizeof(float), cudaMemcpyDeviceToHost))
+	CHECK (cudaMemcpy (&max, dev_Max, sizeof(float), cudaMemcpyDeviceToHost))
+	
+	cudaDeviceSynchronize();
+	MapFloatToIntRange<<<gridSize, BLOCK_SIZE_1D>>> (dev_Map, dev_IntMap, dev_Min, dev_Max, toMin, toMax, size);
 
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
-			outputMap[i * size + j] = (MapValue
-				(*minmax.first, *minmax.second,
-				 toMin, toMax, map[i * size + j]));
-		}
-	}
+	intMap = new int[totalSize]{0};
+	CHECK (cudaMemcpy (intMap, dev_IntMap, totalSize * sizeof(int), cudaMemcpyDeviceToHost))
 }
 
 #pragma endregion 
@@ -319,6 +409,9 @@ void DiamondSquareParallel::MapValuesToIntRange (int toMin, int toMax, int* outp
 void DiamondSquareParallel::CleanUp ()
 {
 	CHECK (cudaFree(dev_Map))
+	CHECK (cudaFree(dev_IntMap))
+	CHECK (cudaFree(dev_Min))
+	CHECK (cudaFree(dev_Max))
 #if CURAND_DEVICE
 	CHECK (cudaFree(dev_MRGStates))
 #endif

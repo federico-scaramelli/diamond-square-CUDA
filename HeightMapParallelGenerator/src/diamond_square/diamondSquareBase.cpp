@@ -21,6 +21,7 @@ DiamondSquareBase::~DiamondSquareBase ()
 {
 	delete[] map;
 	delete[] grayScaleMap;
+	delete[] intMap;
 }
 
 void DiamondSquareBase::DeleteDoubleMap ()
@@ -68,6 +69,17 @@ void DiamondSquareBase::PrintGrayScaleMap ()
 	for (uint32_t i = 0; i < size; ++i) {
 		for (uint32_t j = 0; j < size; ++j) {
 			std::cout << (int)grayScaleMap[i * size + j] << ' ';
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl << std::endl;
+}
+
+void DiamondSquareBase::PrintIntMap ()
+{
+	for (uint32_t i = 0; i < size; ++i) {
+		for (uint32_t j = 0; j < size; ++j) {
+			std::cout << (int)intMap[i * size + j] << ' ';
 		}
 		std::cout << std::endl;
 	}

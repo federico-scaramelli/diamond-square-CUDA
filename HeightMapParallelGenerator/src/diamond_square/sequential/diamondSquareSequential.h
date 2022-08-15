@@ -18,5 +18,6 @@ public:
 	
 	void SquareStep() override;
 
+
 #pragma endregion
 };
