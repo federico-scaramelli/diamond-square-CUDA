@@ -51,6 +51,7 @@ DiamondSquareSetting diamondSquareSettings[] = {
 
 
 DiamondSquareSetting testingDiamondSquareSettings[] = {
+  {0, 0, 0, 0},
   {9, 8, 1.0, 1},
   {17, 16, 1.0, 1},
   {33, 32, 1.0, 1},

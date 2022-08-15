@@ -5,13 +5,13 @@
 
 void DiamondSquareSequential::InitializeDiamondSquare()
 {
-	std::cout << "==================SEQUENTIAL DIAMOND SQUARE==================" << std::endl << std::endl;
-  	std::cout << "----------INITIALIZATION----------" << std::endl;
+	std::cout << "================== SEQUENTIAL DIAMOND SQUARE ==================" << std::endl << std::endl;
+  	std::cout << "---------- INITIALIZATION ----------" << std::endl;
 	std::cout << "Initializing Diamond Square [" << size << " x " << size << "]..." << std::endl;
 	
 	for (uint32_t x = 0; x < size; x += step) {
 		for (uint32_t y = 0; y < size; y += step) {
-			map[GetIndex(x, y)] = RandomFloatUniform();
+			map[GetIndexOnHost(x, y)] = RandomFloatUniform();
 		}
 	}
 }
@@ -45,15 +45,15 @@ void DiamondSquareSequential::DiamondStep()
 		for (uint32_t y = half; y < size; y += step) {
 			float value = 0;
 
-			value = map[GetIndex(x - half, y - half)] +
-				map[GetIndex(x + half, y - half)] +
-				map[GetIndex(x - half, y + half)] +
-				map[GetIndex(x + half, y + half)];
+			value = map[GetIndexOnHost(x - half, y - half)] +
+				map[GetIndexOnHost(x + half, y - half)] +
+				map[GetIndexOnHost(x - half, y + half)] +
+				map[GetIndexOnHost(x + half, y + half)];
 
 			value /= 4.0f;
 			value += RandomFloatUniform() * randomScale;
 
-			map[GetIndex(x, y)] = value;
+			map[GetIndexOnHost(x, y)] = value;
 		}
 	}
 }
@@ -62,15 +62,15 @@ void DiamondSquareSequential::SquareStep()
 {
 	for (uint32_t x = 0; x < size; x += half) {
 		for (uint32_t y = (x + half) % step; y < size; y += step) {
-			float value = map[GetIndex(x - half, y)] +
-				map[GetIndex(x + half, y)] +
-				map[GetIndex(x, y - half)] +
-				map[GetIndex(x, y + half)];
+			float value = map[GetIndexOnHost(x - half, y)] +
+				map[GetIndexOnHost(x + half, y)] +
+				map[GetIndexOnHost(x, y - half)] +
+				map[GetIndexOnHost(x, y + half)];
 
 			value /= 4.0f;
 			value += RandomFloatUniform() * randomScale;
 
-			map[GetIndex(x, y)] = value;
+			map[GetIndexOnHost(x, y)] = value;
 			//std::cout << "SQUARE CAMBIA ELEMENTO: (" << x << ", " << y << ")" << std::endl;
 		}
 	}

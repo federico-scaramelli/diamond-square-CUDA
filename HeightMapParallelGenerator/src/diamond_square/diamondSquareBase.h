@@ -28,7 +28,7 @@ public:
 #pragma region Support Functions
 
 	void CheckSizeAdequate();
-	uint32_t GetIndex(uint32_t x, uint32_t y) const;
+	uint32_t GetIndexOnHost(uint32_t x, uint32_t y) const;
 	double* GetExecutionTime() { return &executionTime; }
 
 	void PrintMap() const;
@@ -45,6 +45,8 @@ public:
 
 #pragma region Image Functions
 
+virtual void MapValuesToGrayScale();
+virtual void MapValuesToIntRange (int toMin, int toMax, int* outputMap);
 void GenerateGrayScaleMap();
 
 void SaveGrayScaleImage(const char* fname, int tileSize);
@@ -64,6 +66,9 @@ protected:
 	
 #pragma endregion
 
+public:
+	uint32_t totalSize;
+
 #pragma region Member Attributes
 
 protected:
@@ -71,7 +76,6 @@ protected:
 	uint8_t* grayScaleMap = nullptr;
 
 	uint32_t size;
-	uint32_t totalSize;
 	uint32_t step;
 	uint32_t half;
 

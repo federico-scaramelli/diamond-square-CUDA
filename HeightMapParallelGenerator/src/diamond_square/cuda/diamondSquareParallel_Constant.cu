@@ -5,26 +5,25 @@
 
 struct Constant
 {
-	uint32_t dev_Size;
 	uint32_t dev_Step;
 	float dev_RandomScale;
 };
 Constant constant = {};
 __constant__ Constant dev_Constant[1];
+__constant__ uint32_t dev_Size[1];
 
-__device__ __forceinline__ float getRandomOnDevice (float const value)
+__device__ __forceinline__ float GetRandomOnDevice (float const value)
 {
 	bool cond = static_cast<int> (value * 10) / 1 & 0x01;
 	return value * (-1) * cond + value * !cond;
 }
 
-
 __device__ __forceinline__ uint32_t GetIndex (uint32_t x, uint32_t y)
 {
-	x = x >= dev_Constant->dev_Size ? dev_Constant->dev_Size - 1 : x;
-	y = y >= dev_Constant->dev_Size ? dev_Constant->dev_Size - 1 : y;
+	x = x >= *dev_Size ? *dev_Size - 1 : x;
+	y = y >= *dev_Size ? *dev_Size - 1 : y;
 
-	return x * dev_Constant->dev_Size + y;
+	return x * *dev_Size + y;
 }
 
 __global__ void DiamondStepParallel (float* map)
@@ -41,7 +40,7 @@ __global__ void DiamondStepParallel (float* map)
 
 	val /= 4.0f;
 
-	map[GetIndex (x, y)] = getRandomOnDevice(map[GetIndex (x, y)]) * dev_Constant->dev_RandomScale + val;
+	map[GetIndex (x, y)] = GetRandomOnDevice(map[GetIndex (x, y)]) * dev_Constant->dev_RandomScale + val;
 }
 
 __global__ void SquareStepParallel (float* map)
@@ -54,7 +53,7 @@ __global__ void SquareStepParallel (float* map)
 			 y = (y * (dev_Constant->dev_Step / 2) + (dev_Constant->dev_Step / 2)) * (y % 2 == 0) +
 				  thd_X * dev_Constant->dev_Step  * (y % 2 != 0);
 
-	if (x > dev_Constant->dev_Size || y > dev_Constant->dev_Size) {
+	if (x > *dev_Size || y > *dev_Size) {
 		return;
 	}
 	
@@ -65,16 +64,16 @@ __global__ void SquareStepParallel (float* map)
 
 	val /= 4.0f;
 
-	map[GetIndex (x, y)] = getRandomOnDevice(map[GetIndex (x, y)]) * dev_Constant->dev_RandomScale + val;
+	map[GetIndex (x, y)] = GetRandomOnDevice(map[GetIndex (x, y)]) * dev_Constant->dev_RandomScale + val;
 }
 
 void DiamondSquareParallel_Constant::InitializeDiamondSquare ()
 {
 	DiamondSquareParallel::InitializeDiamondSquare();
-	constant.dev_Size = size;
 	constant.dev_Step = step;
 	constant.dev_RandomScale = randomScale;
 	cudaMemcpyToSymbol(dev_Constant, &constant, sizeof(constant));
+	cudaMemcpyToSymbol(dev_Size, &size, sizeof(uint32_t));
 }
 
 void DiamondSquareParallel_Constant::DiamondSquare ()
@@ -87,7 +86,7 @@ void DiamondSquareParallel_Constant::DiamondSquare ()
 #endif
 
 	while (step > 1) {
-		CalculateBlockGridSizes();
+		ComputeBlockGridSizes();
 		DiamondStep();
 		CHECK (cudaDeviceSynchronize())
 
@@ -141,6 +140,6 @@ void DiamondSquareParallel_Constant::DiamondStep ()
 void DiamondSquareParallel_Constant::SquareStep ()
 {
 	dim3 blockDimension (blockXSizeSquare, blockYSizeSquare, 1);
-	dim3 gridDimension (gridSizeXSquare, (threadAmount * 2 + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE, 1);
+	dim3 gridDimension (gridSizeXSquare, gridSizeYSquare, 1);
 	SquareStepParallel<<<gridDimension, blockDimension>>> (dev_Map);
 }

@@ -30,18 +30,25 @@
 
 #pragma endregion
 
+struct curandStateMRG32k3a;
+
 class DiamondSquareParallel : public DiamondSquareBase {
 public:
 	DiamondSquareParallel(uint32_t size) : DiamondSquareBase(size) {}
 
+	void AllocateMapOnDevice ();
 	void InitializeDiamondSquare() override;
-	void CalculateBlockGridSizes ();
+	void ComputeBlockGridSizes ();
 	void PrintRandoms();
-	void GenerateRandomNumbers();
+	void GenerateRandomNumbers_HostAPI();
+	void GenerateRandomNumbers_DeviceAPI();
 
 	void DiamondSquare() override;
 	void DiamondStep() override;
 	void SquareStep() override;
+
+	void MapValuesToGrayScale () override;
+	void MapValuesToIntRange (int toMin, int toMax, int* outputMap) override;
 
 	float* GetExecutionTimeCuda() { return &executionTimeCuda; }
 
@@ -49,6 +56,8 @@ public:
 
 protected:
     float* dev_Map = nullptr;
+
+	curandStateMRG32k3a* dev_MRGStates;
 
 	/* 2^k -> k = loop step [0, n-1] */
 	uint32_t threadAmount = 1;
@@ -59,6 +68,7 @@ protected:
 
 	uint32_t gridSizeDiamond = 0;
 	uint32_t gridSizeXSquare = 0;
+	uint32_t gridSizeYSquare = 0;
 
 	float executionTimeCuda = 0;
 };
