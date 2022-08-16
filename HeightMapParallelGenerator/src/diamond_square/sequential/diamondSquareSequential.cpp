@@ -60,17 +60,49 @@ void DiamondSquareSequential::DiamondStep()
 
 void DiamondSquareSequential::SquareStep()
 {
-	for (uint32_t x = 0; x < size; x += half) {
-		for (uint32_t y = (x + half) % step; y < size; y += step) {
-			float value = map[GetIndexOnHost(x - half, y)] +
+	for (int x = 0; x < size; x += half) {
+		for (int y = (x + half) % step; y < size; y += step) {
+
+			int a = 0;
+			float value = 0;
+			int count = 0;
+			a = (x - half) * size + y;
+
+			if (a < totalSize && a >= 0) {
+				value += map[(x - half) * size + y];
+				count++;
+			}
+			a = (x + half) * size + y;
+			if (a < totalSize && a >= 0) {
+				value += map[(x + half) * size + y];
+				count++;
+			}
+			a = x * size + y - half;
+			if (a < totalSize && a >= 0 && (int)(y - half) >= 0) {
+				value += map[x * size + y - half];
+				count++;
+			}
+			a = x * size + y + half ;
+			if (a < totalSize && a >= 0 && y + half < size) {
+				value += map[x * size + y + half];
+				count++;
+			}
+
+			/*float value = map[GetIndexOnHost(x - half, y)] +
 				map[GetIndexOnHost(x + half, y)] +
 				map[GetIndexOnHost(x, y - half)] +
-				map[GetIndexOnHost(x, y + half)];
+				map[GetIndexOnHost(x, y + half)];*/
 
-			value /= 4.0f;
+			/*float value = GetMapValueOnHost(x - half, y) +
+				GetMapValueOnHost(x + half, y) +
+				GetMapValueOnHost(x, y - half) +
+				GetMapValueOnHost(x, y + half);*/
+
+			//value /= 4.0f;
+			value /= count;
 			value += RandomFloatUniform() * randomScale;
 
-			map[GetIndexOnHost(x, y)] = value;
+			map[x * size + y] = value;
 			//std::cout << "SQUARE CAMBIA ELEMENTO: (" << x << ", " << y << ")" << std::endl;
 		}
 	}

@@ -9,7 +9,7 @@
 #define PRINT_DIAMOND_STEP_SEQ	0
 #define PRINT_SQUARE_STEP_SEQ 	0
 
-#define TESTING_SETTINGS		10
+#define TESTING_SETTINGS		4
 
 
 // RESULTS
@@ -20,7 +20,7 @@
 
 #define COPY_RESULT_ON_HOST		1
 
-#define COMPARE_SEQ				0
+#define COMPARE_SEQ				1
 #define COMPARE_CONSTANT_MEM	0
 
 #define CURAND_DEVICE			0
@@ -35,9 +35,9 @@
 
 
 // CONSTANTS
-#define GRAYSCALE_CUDA_PATH				"grayscaleCuda.bmp"
-#define COLOR_CUDA_PATH					"colorCuda.bmp"
-#define GRAYSCALE_CUDA_CONST_PATH		"grayscaleCudaConst.bmp"
-#define COLOR_CUDA_CONST_PATH			"colorCudaConst.bmp"
-#define GRAYSCALE_SEQ_PATH				"grayscale.bmp"
-#define COLOR_SEQ_PATH					"color.bmp"
+#define GRAYSCALE_CUDA_PATH				"Grayscale_Cuda.bmp"
+#define COLOR_CUDA_PATH					"Color_Cuda.bmp"
+#define GRAYSCALE_CUDA_CONST_PATH		"Grayscale_CudaConst.bmp"
+#define COLOR_CUDA_CONST_PATH			"Color_CudaConst.bmp"
+#define GRAYSCALE_SEQ_PATH				"Grayscale.bmp"
+#define COLOR_SEQ_PATH					"Color.bmp"

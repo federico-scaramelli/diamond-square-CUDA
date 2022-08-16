@@ -50,6 +50,13 @@ uint32_t DiamondSquareBase::GetIndexOnHost (uint32_t x, uint32_t y) const
 	return x * size + y;
 }
 
+float DiamondSquareBase::GetMapValueOnHost (uint32_t x, uint32_t y) const
+{
+	if (x >= size || y >= size) return RandomFloatUniform();
+
+	return map[x * size + y];
+}
+
 void DiamondSquareBase::PrintMap () const
 {
 	for (uint32_t i = 0; i < size; ++i) {

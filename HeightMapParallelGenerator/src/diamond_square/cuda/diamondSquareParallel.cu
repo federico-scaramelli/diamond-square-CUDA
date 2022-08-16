@@ -210,7 +210,7 @@ void DiamondSquareParallel::DiamondSquare ()
 #endif
 }
 
-__global__ void DiamondStepParallel (float* map, uint32_t size, uint32_t step, float randomScale, float* min, float* max)
+__global__ void DiamondStepParallel (float* map, uint32_t size, uint32_t step, float randomScale)
 {
 	uint32_t x = blockIdx.y * blockDim.y + threadIdx.y;
 	uint32_t y = blockIdx.x * blockDim.x + threadIdx.x;
@@ -232,7 +232,7 @@ __global__ void DiamondStepParallel (float* map, uint32_t size, uint32_t step, f
 	AtomicMaxFloat(max, val);*/
 }
 
-__global__ void SquareStepParallel (float* map, uint32_t size, uint32_t step, float randomScale, float* min, float* max)
+__global__ void SquareStepParallel (float* map, uint32_t size, uint32_t step, float randomScale)
 {
 	uint32_t thd_X = blockIdx.x * blockDim.x + threadIdx.x;
 	uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -246,12 +246,35 @@ __global__ void SquareStepParallel (float* map, uint32_t size, uint32_t step, fl
 		return;
 	}
 
-	float val = map[GetIndexOnDevice (x - (step / 2), y, size)] +
+	float val = 0;
+	int count = 0;
+	int idx = (x - (step / 2)) * size + y;
+	bool cond = ((int)(x - (step / 2)) >= 0 && idx < (int)(size * size));
+	val += map[idx] * cond;
+	count += 1 * cond;
+
+	idx = (x + (step / 2)) * size + y;
+	cond = idx < (int)(size * size);
+	val += map[idx] * cond;
+	count += 1 * cond;
+
+	idx = x * size + y + (step / 2);
+	cond = y + (step / 2) < size && idx < (int)(size * size);
+	val += map[idx] * cond;
+	count += 1 * cond;
+
+	idx = x * size + y - (step / 2);
+	cond = (int)(y - (step / 2)) >= 0 && idx < (int)(size * size);
+	val += map[idx] * cond;
+	count += 1 * cond;
+
+	/*float val = map[GetIndexOnDevice (x - (step / 2), y, size)] +
 		map[GetIndexOnDevice (x + (step / 2), y, size)] +
 		map[GetIndexOnDevice (x, y - (step / 2), size)] +
-		map[GetIndexOnDevice (x, y + (step / 2), size)];
+		map[GetIndexOnDevice (x, y + (step / 2), size)];*/
 
-	val /= 4.0f;
+	//val /= 4.0f;
+	val /= count;
 	val += (-1.0f + map[GetIndexOnDevice (x, y, size)] * 2.0f) * randomScale;
 
 	//map[GetIndexOnDeviceOnDevice (x, y, size)] = GetRandomOnDevice(map[GetIndexOnDeviceOnDevice (x, y, size)]) * randomScale + val;
@@ -266,7 +289,7 @@ void DiamondSquareParallel::DiamondStep ()
 	dim3 blockDimension (blockSizeDiamond, blockSizeDiamond, 1);
 	dim3 gridDimension (gridSizeDiamond, gridSizeDiamond, 1);
 
-	DiamondStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale, dev_Min, dev_Max);
+	DiamondStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale);
 }
 
 void DiamondSquareParallel::SquareStep ()
@@ -274,7 +297,7 @@ void DiamondSquareParallel::SquareStep ()
 	dim3 blockDimension (blockXSizeSquare, blockYSizeSquare, 1);
 	dim3 gridDimension (gridSizeXSquare, gridSizeYSquare, 1);
 
-	SquareStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale, dev_Min, dev_Max);
+	SquareStepParallel<<<gridDimension, blockDimension>>> (dev_Map, size, step, randomScale);
 }
 
 #pragma endregion

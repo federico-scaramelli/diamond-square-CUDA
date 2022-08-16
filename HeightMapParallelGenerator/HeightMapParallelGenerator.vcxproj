@@ -162,27 +162,27 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="src\diamond_square\cuda\diamondSquareParallel.cu" />
-    <CudaCompile Include="src\diamond_square\cuda\diamondSquareParallel_Constant.cu" />
+    <CudaCompile Include="src\diamond_square\cuda\DiamondSquareParallel.cu" />
+    <CudaCompile Include="src\diamond_square\cuda\DiamondSquareParallel_Constant.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\diamond_square\parameters\colorMapping.cpp" />
-    <ClCompile Include="src\diamond_square\diamondSquareBase.cpp" />
-    <ClCompile Include="src\diamond_square\sequential\diamondSquareSequential.cpp" />
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\diamond_square\parameters\ColorMapping.cpp" />
+    <ClCompile Include="src\diamond_square\DiamondSquareBase.cpp" />
+    <ClCompile Include="src\diamond_square\sequential\DiamondSquareSequential.cpp" />
+    <ClCompile Include="src\Application.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\diamond_square\cuda\diamondSquareParallel_Constant.h" />
-    <ClInclude Include="src\diamond_square\cuda\diamondSquareParallel.h" />
-    <ClInclude Include="src\diamond_square\parameters\applicationSettings.h" />
-    <ClInclude Include="src\diamond_square\parameters\colorMapping.h" />
-    <ClInclude Include="src\image\colorPixel.h" />
-    <ClInclude Include="src\diamond_square\diamondSquareBase.h" />
-    <ClInclude Include="src\image\bmpHandler.h" />
-    <ClInclude Include="src\diamond_square\sequential\diamondSquareSequential.h" />
-    <ClInclude Include="src\diamond_square\parameters\algorithmSettings.h" />
-    <ClInclude Include="src\utils\timeMeasure.h" />
-    <ClInclude Include="src\utils\utils.h" />
+    <ClInclude Include="src\diamond_square\cuda\DiamondSquareParallel_Constant.h" />
+    <ClInclude Include="src\diamond_square\cuda\DiamondSquareParallel.h" />
+    <ClInclude Include="src\diamond_square\parameters\ApplicationSettings.h" />
+    <ClInclude Include="src\diamond_square\parameters\ColorMapping.h" />
+    <ClInclude Include="src\image\ColorPixel.h" />
+    <ClInclude Include="src\diamond_square\DiamondSquareBase.h" />
+    <ClInclude Include="src\image\BmpHandler.h" />
+    <ClInclude Include="src\diamond_square\sequential\DiamondSquareSequential.h" />
+    <ClInclude Include="src\diamond_square\parameters\AlgorithmSettings.h" />
+    <ClInclude Include="src\utils\TimeMeasure.h" />
+    <ClInclude Include="src\utils\Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -29,6 +29,7 @@ public:
 
 	void CheckSizeAdequate();
 	uint32_t GetIndexOnHost(uint32_t x, uint32_t y) const;
+	float GetMapValueOnHost (uint32_t x, uint32_t y) const;
 	double* GetExecutionTime() { return &executionTime; }
 
 	void PrintMap() const;
