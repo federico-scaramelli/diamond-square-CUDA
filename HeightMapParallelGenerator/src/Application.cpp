@@ -164,15 +164,15 @@ int main (int argc, char** argv)
 
 #if COMPARE_CONSTANT_MEM
 		runParallelConstantMem();
+		std::cout << std::endl << std::endl << std::endl << std::endl;
 #endif
 
 #if COMPARE_SEQ
 		runSequential();
+		std::cout << std::endl << std::endl << std::endl << std::endl;
 #endif
 
 #if COMPARE_SEQ || COMPARE_CONSTANT_MEM
-		std::cout << std::endl << std::endl << std::endl << std::endl;
-
 		std::cout << " === SPEED-UP RESULTS === " << std::endl;
 #if COMPARE_CONSTANT_MEM
 		CompareTime("Constant memory usage speed-up is ", parDiamSquare.GetExecutionTime(), parDiamSquareConstMem.GetExecutionTime());

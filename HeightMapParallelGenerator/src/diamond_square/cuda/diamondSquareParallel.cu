@@ -67,6 +67,7 @@ __global__ void SetupRandomGenerator (curandStateMRG32k3a* state, const int n, c
 __global__ void GenerateRandomNumbers (float* map, curandStateMRG32k3a* state, const int n, const uint32_t totalSize)
 {
 	uint32_t idx = threadIdx.x + blockIdx.x * blockDim.x;
+	if (idx * n > totalSize) return;
 
 	float x;
 	/* Copy state to local memory for efficiency */
@@ -91,7 +92,14 @@ void DiamondSquareParallel::GenerateRandomNumbers_DeviceAPI ()
 	CHECK (cudaMalloc((void **)&dev_MRGStates, (totalSize + n - 1) / n * sizeof(curandStateMRG32k3a)))
 
 	dim3 blockSize (BLOCK_SIZE_1D, 1, 1);
-	dim3 gridSize ((((totalSize + n - 1) / n) + (blockSize.x - 1)) / blockSize.x, 1, 1);
+	auto grid = (totalSize + blockSize.x - 1) / blockSize.x > MAX_GRID_SIZE_1D
+		            ? MAX_GRID_SIZE_1D
+		            : (totalSize + blockSize.x - 1) / blockSize.x;
+	//dim3 gridSize ((((totalSize + n - 1) / n) + (blockSize.x - 1)) / blockSize.x, 1, 1);
+	n = grid == MAX_GRID_SIZE_1D
+		    ? (totalSize + BLOCK_SIZE_1D * MAX_GRID_SIZE_1D - 1) / (BLOCK_SIZE_1D * MAX_GRID_SIZE_1D)
+		    : 1;
+	dim3 gridSize (grid, 1, 1);
 
 	SetupRandomGenerator<<<gridSize, blockSize>>> (dev_MRGStates, n, totalSize, RandomIntUniform());
 	CHECK (cudaDeviceSynchronize())
@@ -143,14 +151,14 @@ void DiamondSquareParallel::ComputeBlockGridSizes ()
 	blockSizeDiamond = threadAmount <= MAX_BLOCK_SIZE ? threadAmount : MAX_BLOCK_SIZE;
 	/*		(2^k + 1) x 2^(k+1)	  or	SQUARE_BLOCK_X_SIZE x MAX_BLOCK_SIZE
 	*		        k <= 3					     k > 3						  */
-	blockXSizeSquare = threadAmount <= SQUARE_BLOCK_X_SIZE ? blockSizeDiamond + 1 : SQUARE_BLOCK_X_SIZE;
+	blockXSizeSquare = threadAmount < SQUARE_BLOCK_X_SIZE ? blockSizeDiamond + 1 : SQUARE_BLOCK_X_SIZE;
 	blockYSizeSquare = threadAmount <= SQUARE_BLOCK_X_SIZE ? threadAmount * 2 : blockSizeDiamond;
 
 	/*				  1			  or			2^k / MAX_BLOCK_SIZE		  */
 	gridSizeDiamond = (threadAmount + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
 	/* SQUARE_BLOCK_X_SIZE x MAX_BLOCK_SIZE			block amount
 	 * = (2^(k+1) / MAX_BLOCK_SIZE)  x	 (2^k / SQUARE_BLOCK_X_SIZE) + 1	  */
-	gridSizeXSquare = threadAmount <= SQUARE_BLOCK_X_SIZE ? 1 : (threadAmount / SQUARE_BLOCK_X_SIZE) + 1;
+	gridSizeXSquare = threadAmount < SQUARE_BLOCK_X_SIZE ? 1 : (threadAmount / SQUARE_BLOCK_X_SIZE) + 1;
 	gridSizeYSquare = (threadAmount * 2 + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
 }
 
@@ -218,7 +226,7 @@ __global__ void DiamondStepParallel (float* map, const uint32_t size, const uint
 
 	val /= 4.0f;
 	val += (-1.0f + map[GetIndexOnDevice (x, y, size)] * 2.0f) * randomScale;
-	
+
 	map[GetIndexOnDevice (x, y, size)] = val;
 
 	/*AtomicMinFloat(min, val);
@@ -371,8 +379,8 @@ __global__ void ComputeMinMax (const float* map, float* myMin, float* myMax, con
 	if (threadIdx.x == 0) AtomicMaxFloat (myMax, blockMax[0]);
 }
 
-__global__ void MapFloatToIntRange (const float* map, int* outputMap, 
-								    const float* fromMin, const float* fromMax,
+__global__ void MapFloatToIntRange (const float* map, int* outputMap,
+                                    const float* fromMin, const float* fromMax,
                                     const int toMin, const int toMax, const uint32_t size)
 {
 	uint32_t linearIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -384,8 +392,8 @@ __global__ void MapFloatToIntRange (const float* map, int* outputMap,
 }
 
 // Another method is used because the grayscale map is uint8
-__global__ void MapFloatToGrayScale (const float* map, uint8_t* grayScaleMap, 
-									 const float* fromMin, const float* fromMax,
+__global__ void MapFloatToGrayScale (const float* map, uint8_t* grayScaleMap,
+                                     const float* fromMin, const float* fromMax,
                                      int toMin, int toMax, const uint32_t size)
 {
 	uint32_t linearIdx = blockIdx.x * blockDim.x + threadIdx.x;
