@@ -166,7 +166,7 @@
     <CudaCompile Include="src\diamond_square\cuda\DiamondSquareParallel_Constant.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\diamond_square\parameters\ColorMapping.cpp" />
+    <ClCompile Include="src\image\ColorMapping.cpp" />
     <ClCompile Include="src\diamond_square\DiamondSquareBase.cpp" />
     <ClCompile Include="src\diamond_square\sequential\DiamondSquareSequential.cpp" />
     <ClCompile Include="src\Application.cpp" />
@@ -175,7 +175,7 @@
     <ClInclude Include="src\diamond_square\cuda\DiamondSquareParallel_Constant.h" />
     <ClInclude Include="src\diamond_square\cuda\DiamondSquareParallel.h" />
     <ClInclude Include="src\diamond_square\parameters\ApplicationSettings.h" />
-    <ClInclude Include="src\diamond_square\parameters\ColorMapping.h" />
+    <ClInclude Include="src\image\ColorMapping.h" />
     <ClInclude Include="src\image\ColorPixel.h" />
     <ClInclude Include="src\diamond_square\DiamondSquareBase.h" />
     <ClInclude Include="src\image\BmpHandler.h" />

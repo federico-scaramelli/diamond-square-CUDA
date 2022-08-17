@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
-#include "../../image/colorPixel.h"
-#include "../../utils/utils.h"
+#include "colorPixel.h"
+#include "../utils/utils.h"
 
 class ColorRangeMap {
 public:

@@ -7,64 +7,62 @@
 
 //My headers
 #include "../image/bmpHandler.h"
-#include "./parameters/colorMapping.h"
+#include "../image/colorMapping.h"
 #include "../utils/timeMeasure.h"
 
 
 class DiamondSquareBase
 {
 public:
-
 #pragma region Constructors
 
-	DiamondSquareBase(const uint32_t size);
+	DiamondSquareBase (const uint32_t size);
 
-	virtual ~DiamondSquareBase();
+	virtual ~DiamondSquareBase ();
 
-	void DeleteDoubleMap();
+	void DeleteFloatMap ();
 
 #pragma endregion
 
 #pragma region Support Functions
 
-	void CheckSizeAdequate();
-	uint32_t GetIndexOnHost(uint32_t x, uint32_t y) const;
-	float GetMapValueOnHost (uint32_t x, uint32_t y) const;
-	double* GetExecutionTime() { return &executionTime; }
+	void CheckSizeAdequate ();
+	uint32_t GetIndexOnHost (uint32_t x, uint32_t y) const;
+	double* GetExecutionTime () { return &executionTime; }
 
-	void PrintMap() const;
-	void PrintGrayScaleMap();
+	void PrintFloatMap () const;
+	void PrintGrayScaleMap ();
 	void PrintIntMap ();
 
 #pragma endregion
 
 #pragma region Setter Functions
 
-	void SetRandomScale(float randomScale);
-	void SetInitialStepSize(uint32_t initValuesDistance);
+	void SetRandomScale (float randomScale);
+	void SetInitialStepSize (uint32_t initValuesDistance);
 
 #pragma endregion
 
 #pragma region Image Functions
 
-virtual void MapValuesToGrayScale();
-virtual void MapValuesToIntRange (int toMin, int toMax, int* outputMap);
-void GenerateGrayScaleMap();
+	virtual void MapValuesToGrayScale ();
+	virtual void MapValuesToIntRange (int toMin, int toMax);
+	void GenerateGrayScaleMap ();
 
-void SaveGrayScaleImage(const char* fname, int tileSize);
-void SaveColorImage(const char* fname, int tileSize);
+	void SaveGrayScaleImage (const char* fname, int tileSize);
+	void SaveColorImage (const char* fname, int tileSize);
 
 #pragma endregion
 
 #pragma region Execution Functions
 
-	virtual void ExecuteDiamondSquare();
+	virtual void ExecuteDiamondSquare ();
 
 protected:
-	virtual void InitializeDiamondSquare() = 0;
-	virtual void DiamondSquare() = 0;
-	virtual void DiamondStep() = 0;
-	virtual void SquareStep() = 0;
+	virtual void InitializeDiamondSquare () = 0;
+	virtual void DiamondSquare () = 0;
+	virtual void DiamondStep () = 0;
+	virtual void SquareStep () = 0;
 
 #pragma endregion
 
@@ -82,7 +80,7 @@ protected:
 	uint32_t step;
 	uint32_t half;
 
-	float randomScale = 5.0;
+	float randomScale = 1.0;
 
 	double executionTime;
 

@@ -1,7 +1,9 @@
 #pragma once
 #include <random>
 
-static int MapValue(float fromMin, float fromMax, int toMin, int toMax, float value)
+static int MapValue (const float fromMin, const float fromMax, 
+					 const int toMin, const int toMax, 
+					 const float value)
 {
 	return static_cast<int>((value - fromMin) / (fromMax - fromMin) * (toMax - toMin) + toMin);
 }

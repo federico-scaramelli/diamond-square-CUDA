@@ -8,7 +8,7 @@
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\diamond_square\sequential\DiamondSquareSequential.cpp" />
     <ClCompile Include="src\diamond_square\DiamondSquareBase.cpp" />
-    <ClCompile Include="src\diamond_square\parameters\ColorMapping.cpp" />
+    <ClCompile Include="src\image\ColorMapping.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\image\BmpHandler.h" />
@@ -16,7 +16,7 @@
     <ClInclude Include="src\diamond_square\sequential\DiamondSquareSequential.h" />
     <ClInclude Include="src\image\ColorPixel.h" />
     <ClInclude Include="src\utils\Utils.h" />
-    <ClInclude Include="src\diamond_square\parameters\ColorMapping.h" />
+    <ClInclude Include="src\image\ColorMapping.h" />
     <ClInclude Include="src\diamond_square\parameters\AlgorithmSettings.h" />
     <ClInclude Include="src\utils\TimeMeasure.h" />
     <ClInclude Include="src\diamond_square\cuda\DiamondSquareParallel.h" />

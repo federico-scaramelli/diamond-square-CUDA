@@ -34,7 +34,7 @@ struct curandStateMRG32k3a;
 
 class DiamondSquareParallel : public DiamondSquareBase {
 public:
-	DiamondSquareParallel(uint32_t size) : DiamondSquareBase(size) {}
+	explicit DiamondSquareParallel(uint32_t size) : DiamondSquareBase(size) {}
 
 	~DiamondSquareParallel() override
 	{
@@ -53,7 +53,7 @@ public:
 	void SquareStep() override;
 
 	void MapValuesToGrayScale () override;
-	void MapValuesToIntRange (int toMin, int toMax);
+	void MapValuesToIntRange (int toMin, int toMax) override;
 
 	float* GetExecutionTimeCuda() { return &executionTimeCuda; }
 
@@ -69,7 +69,7 @@ protected:
 	float min = 0;
 	float max = 0;
 
-	curandStateMRG32k3a* dev_MRGStates;
+	curandStateMRG32k3a* dev_MRGStates = nullptr;
 
 	/* 2^k -> k = loop step [0, n-1] */
 	uint32_t threadAmount = 1;

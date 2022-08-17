@@ -28,6 +28,11 @@ double sequentialTime;
 double parallelTime;
 double parallelTime_const;
 
+double seqTimeGrayscale;
+double parTimeGrayscale;
+double seqTimeCustomRangeMap;
+double parTimeCustomRangeMap;
+
 // SEQUENTIAL
 void runSequential ()
 {
@@ -41,20 +46,28 @@ void runSequential ()
 	seqDiamSquare.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
 #endif
 
-	MeasureTimeFn (&sequentialTime, "\nSequential algorithm execution terminated in ",
+	MeasureTimeFn (&sequentialTime, "Sequential algorithm execution terminated in ",
 	               &seqDiamSquare, &DiamondSquareBase::ExecuteDiamondSquare);
 
 #if PRINT_GRAYSCALE_SEQ
 	ds.PrintGrayScaleMap();
 #endif
 
+	MeasureTimeFn (&seqTimeCustomRangeMap, "Custom range map generated in ",
+				   &seqDiamSquare, &DiamondSquareBase::MapValuesToIntRange,
+					-1000, 2000);
+	MeasureTimeFn (&seqTimeGrayscale, "Grayscale map generated in ",
+				   &seqDiamSquare, &DiamondSquareBase::MapValuesToGrayScale);
+
 #if SAVE_GRAYSCALE_IMAGE
-	MeasureTimeFn(nullptr, "Grayscale image generation and save file: ",
+	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
+	MeasureTimeFn(nullptr, "Grayscale image generated and saved on file in ",
 				  &seqDiamSquare, &DiamondSquareBase::SaveGrayScaleImage,
 	              GRAYSCALE_SEQ_PATH, diamondSquareSettings[setting].imageTileSize);
 #endif
 #if SAVE_COLOR_IMAGE
-	MeasureTimeFn (nullptr, "Color image generation and save file: ",
+	std::cout << "\n - COLOR IMAGE - " << std::endl;
+	MeasureTimeFn (nullptr, "Color image generated and saved on file in ",
 	               &seqDiamSquare, &DiamondSquareBase::SaveColorImage,
 	               COLOR_SEQ_PATH, 1);
 #endif
@@ -77,30 +90,26 @@ void runParallel ()
 	MeasureTimeFn (&parallelTime, "Parallel algorithm execution terminated in ",
 	               &parDiamSquare, &DiamondSquareBase::ExecuteDiamondSquare);
 
-#if TEST_MAP_FUNC
-	/*MeasureTimeFn (nullptr, "Double values mapped on int values in ",
-				   &parDiamSquare, &DiamondSquareParallel::MapValuesToIntRange, 
-				   0, 255);*/
-	MeasureTimeFn (nullptr, "Double values mapped on int values in ",
-				   &parDiamSquare, &DiamondSquareParallel::MapValuesToGrayScale);
-
-	/*parDiamSquare.PrintIntMap();
-	parDiamSquare.PrintMap();*/
-#endif
-
 #if PRINT_GRAYSCALE_CUDA
 	parDiamSquare.PrintGrayScaleMap();
 #endif
 
+	MeasureTimeFn (&parTimeCustomRangeMap, "Custom range map generated in ",
+				   &parDiamSquare, &DiamondSquareParallel::MapValuesToIntRange,
+					-1000, 2000);
+	MeasureTimeFn (&parTimeGrayscale, "Grayscale map generated in ",
+				   &parDiamSquare, &DiamondSquareBase::MapValuesToGrayScale);
+	
+
 #if SAVE_GRAYSCALE_IMAGE
-	MeasureTimeFn(nullptr, "Grayscale generated and saved on file in ",
+	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
+	MeasureTimeFn(nullptr, "Grayscale image generated and saved on file in ",
 				  &parDiamSquare, &DiamondSquareBase::SaveGrayScaleImage,
 	              GRAYSCALE_CUDA_PATH, diamondSquareSettings[setting].imageTileSize);
-	parDiamSquare.GenerateGrayScaleMap();
-	parDiamSquare.SaveGrayScaleImage ("prova.bmp", 1);
 #endif
 #if SAVE_COLOR_IMAGE
-	MeasureTimeFn (nullptr, "Color generated and saved on file in ",
+	std::cout << "\n - COLOR IMAGE - " << std::endl;
+	MeasureTimeFn (nullptr, "Color image generated and saved on file in ",
 	               &parDiamSquare, &DiamondSquareBase::SaveColorImage,
 	               COLOR_CUDA_PATH, 1);
 #endif
@@ -116,23 +125,28 @@ void runParallelConstantMem ()
 	parDiamSquareConstMem.SetInitialStepSize (diamondSquareSettings[setting].initialStepSize);
 	//ds.SetInitialStepSize(32);
 #else
-		parDiamSquareConstMem.SetRandomScale(30.f);
-		parDiamSquareConstMem.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
+	parDiamSquareConstMem.SetRandomScale(30.f);
+	parDiamSquareConstMem.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
 #endif
 
 	MeasureTimeFn (&parallelTime_const, "Parallel algorithm execution terminated in ",
 	               &parDiamSquareConstMem, &DiamondSquareBase::ExecuteDiamondSquare);
 
 #if PRINT_GRAYSCALE_CUDA
-		parDiamSquare.PrintGrayScaleMap();
+	parDiamSquare.PrintGrayScaleMap();
 #endif
 
+	MeasureTimeFn (nullptr, "Grayscale map generated in ",
+			   &parDiamSquareConstMem, &DiamondSquareBase::MapValuesToGrayScale);
+
 #if SAVE_GRAYSCALE_IMAGE
-		MeasureTimeFn(nullptr, "Grayscale generated and saved on file in ",
+	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
+	MeasureTimeFn(nullptr, "Grayscale generated and saved on file in ",
 					  &parDiamSquareConstMem, &DiamondSquareBase::SaveGrayScaleImage,
 		              GRAYSCALE_CUDA_CONST_PATH, diamondSquareSettings[setting].imageTileSize);
 #endif
 #if SAVE_COLOR_IMAGE
+	std::cout << "\n - COLOR IMAGE - " << std::endl;
 	MeasureTimeFn (nullptr, "Color generated and saved on file in ",
 	               &parDiamSquareConstMem, &DiamondSquareBase::SaveColorImage,
 	               COLOR_CUDA_CONST_PATH, 1);
@@ -150,19 +164,25 @@ int main (int argc, char** argv)
 
 #if COMPARE_CONSTANT_MEM
 		runParallelConstantMem();
-		std::cout << std::endl << std::endl;
-		CompareTime("Constant memory usage speed-up is ", parDiamSquare.GetExecutionTime(), parDiamSquareConstMem.GetExecutionTime());
-		std::cout << std::endl << std::endl << std::endl << std::endl;
 #endif
-
 
 #if COMPARE_SEQ
 		runSequential();
+#endif
+
+#if COMPARE_SEQ || COMPARE_CONSTANT_MEM
 		std::cout << std::endl << std::endl << std::endl << std::endl;
 
-		std::cout << "================SPEED-UP RESULTS================" << std::endl;
-		CompareTime ("Initialization and Diamond Square parallel speed-up is ", &sequentialTime, &parallelTime);
-		CompareTime ("Diamond Square parallel speed-up is ", seqDiamSquare.GetExecutionTime(), parDiamSquare.GetExecutionTime());
+		std::cout << " === SPEED-UP RESULTS === " << std::endl;
+#if COMPARE_CONSTANT_MEM
+		CompareTime("Constant memory usage speed-up is ", parDiamSquare.GetExecutionTime(), parDiamSquareConstMem.GetExecutionTime());
+#endif
+#if COMPARE_SEQ
+		CompareTime ("Diamond Square algorithm parallel speed-up is ", seqDiamSquare.GetExecutionTime(), parDiamSquare.GetExecutionTime());
+		CompareTime ("Initialization and algorithm parallel speed-up is ", &sequentialTime, &parallelTime);
+		CompareTime ("Grayscale map conversion parallel speed-up is ", &seqTimeGrayscale, &parTimeGrayscale);
+		CompareTime ("Custom range map conversion parallel speed-up is ", &seqTimeCustomRangeMap, &parTimeCustomRangeMap);
+#endif
 #endif
 	}
 	catch (std::exception& e) {

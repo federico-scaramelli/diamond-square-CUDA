@@ -11,7 +11,7 @@ DiamondSquareBase::DiamondSquareBase (const uint32_t size)
 	this->totalSize = size * size;
 	this->step = size - 1;
 	this->map = new float[totalSize];
-	memset (map, 0.0, sizeof (float) * totalSize);
+	memset (map, 0, sizeof (float) * totalSize);
 	half = 0;
 
 	executionTime = 0;
@@ -24,7 +24,7 @@ DiamondSquareBase::~DiamondSquareBase ()
 	delete[] intMap;
 }
 
-void DiamondSquareBase::DeleteDoubleMap ()
+void DiamondSquareBase::DeleteFloatMap ()
 {
 	delete[] map;
 	map = nullptr;
@@ -37,7 +37,8 @@ void DiamondSquareBase::DeleteDoubleMap ()
 
 void DiamondSquareBase::CheckSizeAdequate ()
 {
-	if ((size - 1 & size - 2) != 0) {
+	if ((size - 1 & size - 2) != 0)
+	{
 		throw std::exception ("Size not adequate. The map size must be a power of two plus one.");
 	}
 }
@@ -50,19 +51,11 @@ uint32_t DiamondSquareBase::GetIndexOnHost (uint32_t x, uint32_t y) const
 	return x * size + y;
 }
 
-float DiamondSquareBase::GetMapValueOnHost (uint32_t x, uint32_t y) const
+void DiamondSquareBase::PrintFloatMap () const
 {
-	if (x >= size || y >= size) return RandomFloatUniform();
-
-	return map[x * size + y];
-}
-
-void DiamondSquareBase::PrintMap () const
-{
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
-			std::cout << map[i * size + j] << ' ';
-		}
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		for (uint32_t j = 0; j < size; ++j) { std::cout << map[i * size + j] << ' '; }
 		std::cout << std::endl;
 	}
 	std::cout << std::endl << std::endl;
@@ -71,12 +64,11 @@ void DiamondSquareBase::PrintMap () const
 void DiamondSquareBase::PrintGrayScaleMap ()
 {
 	if (grayScaleMap == nullptr)
-		GenerateGrayScaleMap ();
+		GenerateGrayScaleMap();
 
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
-			std::cout << (int)grayScaleMap[i * size + j] << ' ';
-		}
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		for (uint32_t j = 0; j < size; ++j) { std::cout << static_cast<int> (grayScaleMap[i * size + j]) << ' '; }
 		std::cout << std::endl;
 	}
 	std::cout << std::endl << std::endl;
@@ -84,10 +76,12 @@ void DiamondSquareBase::PrintGrayScaleMap ()
 
 void DiamondSquareBase::PrintIntMap ()
 {
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
-			std::cout << (int)intMap[i * size + j] << ' ';
-		}
+	if (intMap == nullptr)
+		throw std::runtime_error("Tried to print the int map but it has not been generated!");
+
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		for (uint32_t j = 0; j < size; ++j) { std::cout << intMap[i * size + j] << ' '; }
 		std::cout << std::endl;
 	}
 	std::cout << std::endl << std::endl;
@@ -98,10 +92,7 @@ void DiamondSquareBase::PrintIntMap ()
 
 #pragma region Setter Functions
 
-void DiamondSquareBase::SetRandomScale (float randomScale)
-{
-	this->randomScale = randomScale;
-}
+void DiamondSquareBase::SetRandomScale (float randomScale) { this->randomScale = randomScale; }
 
 void DiamondSquareBase::SetInitialStepSize (uint32_t initValuesDistance)
 {
@@ -122,31 +113,40 @@ void DiamondSquareBase::SetInitialStepSize (uint32_t initValuesDistance)
 
 void DiamondSquareBase::MapValuesToGrayScale ()
 {
+	std::cout << "\n - VALUES MAPPING - " << std::endl;
+	std::cout << "Mapping values to grayscale..." << std::endl;
+
 	grayScaleMap = new uint8_t[totalSize]{ 0 };
 	auto minmax = std::minmax_element (map, map + totalSize);
 
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		for (uint32_t j = 0; j < size; ++j)
+		{
 			grayScaleMap[i * size + j] = static_cast<uint8_t> (MapValue
 				(*minmax.first, *minmax.second,
 				 0, 255, map[i * size + j]));
 		}
 	}
 
-	if (DELETE_DOUBLE_MAP)
-		DeleteDoubleMap();
+	if (DELETE_FLOAT_MAP)
+		DeleteFloatMap();
 }
 
-void DiamondSquareBase::MapValuesToIntRange (int toMin, int toMax, int* outputMap)
+void DiamondSquareBase::MapValuesToIntRange (int toMin, int toMax)
 {
-	std::cout << "\n---------- VALUES MAPPING ----------" << std::endl;
-	std::cout << "Mapping values..." << std::endl;
+	std::cout << "\n - VALUES MAPPING - " << std::endl;
+	std::cout << "Mapping values to int range..." << std::endl;
 
 	auto minmax = std::minmax_element (map, map + totalSize);
 
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
-			outputMap[i * size + j] = (MapValue
+	intMap = new int[totalSize]{ 0 };
+
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		for (uint32_t j = 0; j < size; ++j)
+		{
+			intMap[i * size + j] = (MapValue
 				(*minmax.first, *minmax.second,
 				 toMin, toMax, map[i * size + j]));
 		}
@@ -155,25 +155,28 @@ void DiamondSquareBase::MapValuesToIntRange (int toMin, int toMax, int* outputMa
 
 void DiamondSquareBase::GenerateGrayScaleMap ()
 {
-	std::cout << "\n---------- IMAGE GENERATION ----------" << std::endl;
-	std::cout << "Creating grayscale matrix..." << std::endl;
+	std::cout << "\n\n - IMAGE GENERATION - " << std::endl;
+	std::cout << "Mapping values to grayscale..." << std::endl;
 
-	MapValuesToGrayScale ();
+	MeasureTimeFn (nullptr, "Grayscale map generated in ", this,
+		               &DiamondSquareBase::MapValuesToGrayScale);
 }
 
 void DiamondSquareBase::SaveGrayScaleImage (const char* fname, int tileSize)
 {
-	if (grayScaleMap == nullptr) {
-		MeasureTimeFn (nullptr, "Grayscale map generated in ", this,
-		               &DiamondSquareBase::GenerateGrayScaleMap);
+	if (grayScaleMap == nullptr)
+	{
+		GenerateGrayScaleMap();
 	}
 
 	std::cout << "Creating grayscale image..." << std::endl;
 
 	BMP image (size * tileSize, size * tileSize, true);
 
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		for (uint32_t j = 0; j < size; ++j)
+		{
 			image.FillRegion (j * tileSize, i * tileSize, tileSize, grayScaleMap[i * size + j]);
 		}
 	}
@@ -182,9 +185,9 @@ void DiamondSquareBase::SaveGrayScaleImage (const char* fname, int tileSize)
 
 void DiamondSquareBase::SaveColorImage (const char* fname, int tileSize)
 {
-	if (grayScaleMap == nullptr) {
-		MeasureTimeFn (nullptr, "Grayscale map generated in ", this,
-		               &DiamondSquareBase::GenerateGrayScaleMap);
+	if (grayScaleMap == nullptr)
+	{
+		GenerateGrayScaleMap();
 	}
 
 	ColorMapping::CacheColorsFromMapping();
@@ -194,8 +197,10 @@ void DiamondSquareBase::SaveColorImage (const char* fname, int tileSize)
 	BMP image (size * tileSize, size * tileSize, true);
 	ColorPixel color;
 
-	for (uint32_t i = 0; i < size; ++i) {
-		for (uint32_t j = 0; j < size; ++j) {
+	for (uint32_t i = 0; i < size; ++i)
+	{
+		for (uint32_t j = 0; j < size; ++j)
+		{
 			ColorMapping::GetColorLerp (grayScaleMap[i * size + j], &color);
 			image.FillRegion (j * tileSize, i * tileSize, tileSize, color);
 		}
@@ -208,22 +213,22 @@ void DiamondSquareBase::SaveColorImage (const char* fname, int tileSize)
 
 void DiamondSquareBase::ExecuteDiamondSquare ()
 {
-	MeasureTimeFn (nullptr, "\nMap initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);
+	MeasureTimeFn (nullptr, "Map initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);
 
-	std::cout << "\n---------- EXECUTION ----------" << std::endl;
+	std::cout << "\n - EXECUTION - " << std::endl;
 	std::cout << "Executing diamond square..." << std::endl;
 
 	MeasureTimeFn (&executionTime, "Algorithm terminated in ", this, &DiamondSquareBase::DiamondSquare);
 
-#if CUDA_EVENTS_TIMING
+#if EVENTS_TIMING
 		if (dynamic_cast<DiamondSquareParallel*>(this) != nullptr) {
 			std::cout << std::endl;
-			std::cout << "CUDA Events measured Diamond Square parallel time is " << 
+			std::cout << "Diamond Square parallel time measured with CUDA Events is " << 
 			  *(dynamic_cast<DiamondSquareParallel*>(this)->GetExecutionTimeCuda()) << std::endl;
-			std::cout << "and the difference is only equal to " << 
-			  *GetExecutionTime() - *(dynamic_cast<DiamondSquareParallel*>(this)->GetExecutionTimeCuda());
+			std::cout << "and the difference from time measured with CPU is equal to " << 
+			  *GetExecutionTime() - *(dynamic_cast<DiamondSquareParallel*>(this)->GetExecutionTimeCuda()) << std::endl;
 		}
 #endif
 
-	std::cout << "\n\n---------- TOTAL EXECUTION TIME ----------" << std::endl;
+	std::cout << "\n -- TOTAL EXECUTION TIME -- " << std::endl;
 }

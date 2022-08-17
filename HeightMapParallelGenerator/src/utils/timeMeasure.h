@@ -40,12 +40,12 @@ auto MeasureTimeFn(double* outputTime, const char* msg, F &&fn, Args&&... args)
     return (*fn)(std::forward<Args>(args)...);
 }
 
-static void CompareTime(const char* message, double* time1, double* time2)
+static void CompareTime(const char* message, const double* time1, const double* time2)
 {
 	std::cout << message << *time1 / *time2 << std::endl;
 }
 
-static void CompareTime(const char* message, float* time1, float* time2)
+static void CompareTime(const char* message, const float* time1, const float* time2)
 {
 	std::cout << message << *time1 / *time2 << std::endl;
 }
