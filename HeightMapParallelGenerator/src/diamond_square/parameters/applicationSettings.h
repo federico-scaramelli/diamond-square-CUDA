@@ -9,30 +9,30 @@
 #define PRINT_DIAMOND_STEP_SEQ	0
 #define PRINT_SQUARE_STEP_SEQ 	0
 
-#define TESTING_SETTINGS		9
+#define TESTING_SETTINGS		0
 
 
 // RESULTS
 #define SAVE_GRAYSCALE_IMAGE	0
-#define SAVE_COLOR_IMAGE		0
+#define SAVE_COLOR_IMAGE		1
 
 #define DELETE_FLOAT_MAP		1	//Delete the float map when the grayscale is generated
-
 #define COPY_RESULT_ON_HOST		1
 
+#define RUN_SIZES_COMPARATOR	0
 #define COMPARE_SEQ				0
 #define COMPARE_CONSTANT_MEM	0
 
 #define RAND_DEVICE_API			0
 
-#define EVENTS_TIMING			1
+#define EVENTS_TIMING			0
 
 
 // SETTINGS
 #define SQUARE_BLOCK_X_SIZE		8   
 #define MAX_BLOCK_SIZE			16	// 16 or 32
 #define BLOCK_SIZE_1D			256	
-#define MAX_GRID_SIZE_1D		128	
+#define MAX_GRID_SIZE_1D		1024	
 
 
 // CONSTANTS

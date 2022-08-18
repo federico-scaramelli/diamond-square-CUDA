@@ -116,7 +116,10 @@ void DiamondSquareBase::MapValuesToGrayScale ()
 	std::cout << "\n - VALUES MAPPING - " << std::endl;
 	std::cout << "Mapping values to grayscale..." << std::endl;
 
+
+	delete[] grayScaleMap; //Safe
 	grayScaleMap = new uint8_t[totalSize]{ 0 };
+
 	auto minmax = std::minmax_element (map, map + totalSize);
 
 	for (uint32_t i = 0; i < size; ++i)
@@ -138,10 +141,11 @@ void DiamondSquareBase::MapValuesToIntRange (int toMin, int toMax)
 	std::cout << "\n - VALUES MAPPING - " << std::endl;
 	std::cout << "Mapping values to int range..." << std::endl;
 
-	auto minmax = std::minmax_element (map, map + totalSize);
-
+	delete[] intMap; //Safe
 	intMap = new int[totalSize]{ 0 };
 
+	auto minmax = std::minmax_element (map, map + totalSize);
+	
 	for (uint32_t i = 0; i < size; ++i)
 	{
 		for (uint32_t j = 0; j < size; ++j)
@@ -213,7 +217,7 @@ void DiamondSquareBase::SaveColorImage (const char* fname, int tileSize)
 
 void DiamondSquareBase::ExecuteDiamondSquare ()
 {
-	MeasureTimeFn (nullptr, "Map initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);
+	MeasureTimeFn (&initializationTime, "Map initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);
 
 	std::cout << "\n - EXECUTION - " << std::endl;
 	std::cout << "Executing diamond square..." << std::endl;

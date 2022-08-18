@@ -33,14 +33,79 @@ double parTimeGrayscale;
 double seqTimeCustomRangeMap;
 double parTimeCustomRangeMap;
 
+// COMPARE SIZES
+void runComparator ()
+{
+	int settingsCount = sizeof(testingDiamondSquareSettings) / sizeof (DiamondSquareSetting);
+	int startingIdx = 6;
+	//settingsCount = 7;
+	auto results = new DiamondSquareResult[settingsCount];
+
+	for (auto i = startingIdx; i < settingsCount; i++)
+	{
+		DiamondSquareResult& currentResult = results[i];
+		currentResult.setting = testingDiamondSquareSettings[i];
+		uint32_t currentSize = testingDiamondSquareSettings[i].size;
+
+		DiamondSquareParallel parallel{ currentSize };
+		DiamondSquareSequential sequential{ currentSize };
+		DiamondSquareParallel_Constant constantParallel{ currentSize };
+
+		std::cout << R"( /\/\/\/\/\/\/\/\/\ TEST )" << i << " - Size [" << currentSize << R"(] /\/\/\/\/\/\/\/\/\)" << "\n";
+		MeasureTimeFn (&currentResult.totalPar_Time, "Algorithm execution terminated in ",
+		               &parallel, &DiamondSquareBase::ExecuteDiamondSquare);
+		MeasureTimeFn (&currentResult.parCustomRangeMap_Time, "Custom range map generated in ",
+		               &parallel, &DiamondSquareParallel::MapValuesToIntRange,
+		               -1000, 2000);
+		MeasureTimeFn (&currentResult.parGrayscale_Time, "Grayscale map generated in ",
+		               &parallel, &DiamondSquareParallel::MapValuesToGrayScale);
+
+		std::cout << "\n\n";
+		MeasureTimeFn (&currentResult.totalParConst_Time, "Algorithm execution terminated in ",
+		               &constantParallel, &DiamondSquareBase::ExecuteDiamondSquare);
+
+		std::cout << "\n\n";
+		MeasureTimeFn (&currentResult.totalSeq_Time, "Algorithm execution terminated in ",
+		               &sequential, &DiamondSquareBase::ExecuteDiamondSquare);
+		MeasureTimeFn (&currentResult.seqCustomRangeMap_Time, "Custom range map generated in ",
+		               &sequential, &DiamondSquareBase::MapValuesToIntRange,
+		               -1000, 2000);
+		MeasureTimeFn (&currentResult.seqGrayscale_Time, "Grayscale map generated in ",
+		               &sequential, &DiamondSquareBase::MapValuesToGrayScale);
+
+		std::cout << "\n\n" << R"( /\/\/\/\/\/\/\/\/\ SPEED-UP TEST )" << i << " - Size [" << currentSize << R"(] /\/\/\/\/\/\/\/\/\)" << "\n";
+		
+		CompareTime ("Constant memory usage algorithm speed-up is ", constantParallel.GetExecutionTime(),
+		             parallel.GetExecutionTime());
+		CompareTime ("Constant memory usage overall execution speed-up is ",
+		             &currentResult.totalParConst_Time, &currentResult.totalPar_Time);
+		CompareTime ("Diamond Square initialization parallel speed-up is ",
+		             sequential.GetInitializationTime(), parallel.GetInitializationTime());
+		CompareTime ("Diamond Square algorithm parallel speed-up is ",
+		             sequential.GetExecutionTime(), parallel.GetExecutionTime());
+		CompareTime ("Overall execution parallel speed-up is ",
+		             &currentResult.totalSeq_Time, &currentResult.totalPar_Time);
+		CompareTime ("Grayscale map conversion parallel speed-up is ",
+		             &currentResult.seqGrayscale_Time, &currentResult.parGrayscale_Time);
+		CompareTime ("Custom range map conversion parallel speed-up is ",
+		             &currentResult.seqCustomRangeMap_Time, &currentResult.parCustomRangeMap_Time);
+		std::cout << "\n\n" << R"(/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\)" << "\n\n\n\n";
+	}
+	std::cout << "\n\n" << R"(/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\)" << "\n\n\n\n";
+	for (auto i = startingIdx; i < settingsCount; i++)
+	{
+		results[i].PrintSpeedUps();
+	}
+}
+
 // SEQUENTIAL
 void runSequential ()
 {
 #if !TESTING_SETTINGS
 	seqDiamSquare.SetRandomScale (diamondSquareSettings[setting].randomScale);
-	//ds.SetRandomScale(100);
+	//seqDiamSquare.SetRandomScale(100);
 	seqDiamSquare.SetInitialStepSize (diamondSquareSettings[setting].initialStepSize);
-	//ds.SetInitialStepSize(32);
+	//seqDiamSquare.SetInitialStepSize(32);
 #else
 	seqDiamSquare.SetRandomScale(testingDiamondSquareSettings[TESTING_SETTINGS].randomScale);
 	seqDiamSquare.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
@@ -54,10 +119,10 @@ void runSequential ()
 #endif
 
 	MeasureTimeFn (&seqTimeCustomRangeMap, "Custom range map generated in ",
-				   &seqDiamSquare, &DiamondSquareBase::MapValuesToIntRange,
-					-1000, 2000);
+	               &seqDiamSquare, &DiamondSquareBase::MapValuesToIntRange,
+	               -1000, 2000);
 	MeasureTimeFn (&seqTimeGrayscale, "Grayscale map generated in ",
-				   &seqDiamSquare, &DiamondSquareBase::MapValuesToGrayScale);
+	               &seqDiamSquare, &DiamondSquareBase::MapValuesToGrayScale);
 
 #if SAVE_GRAYSCALE_IMAGE
 	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
@@ -73,15 +138,14 @@ void runSequential ()
 #endif
 }
 
-
 // PARALLEL
 void runParallel ()
 {
 #if !TESTING_SETTINGS
 	parDiamSquare.SetRandomScale (diamondSquareSettings[setting].randomScale);
-	//ds.SetRandomScale(100);
+	parDiamSquare.SetRandomScale(100);
 	parDiamSquare.SetInitialStepSize (diamondSquareSettings[setting].initialStepSize);
-	//ds.SetInitialStepSize(32);
+	parDiamSquare.SetInitialStepSize(256);
 #else
 	parDiamSquare.SetRandomScale(testingDiamondSquareSettings[TESTING_SETTINGS].randomScale);
 	parDiamSquare.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
@@ -94,12 +158,12 @@ void runParallel ()
 	parDiamSquare.PrintGrayScaleMap();
 #endif
 
-	MeasureTimeFn (&parTimeCustomRangeMap, "Custom range map generated in ",
-				   &parDiamSquare, &DiamondSquareParallel::MapValuesToIntRange,
-					-1000, 2000);
 	MeasureTimeFn (&parTimeGrayscale, "Grayscale map generated in ",
-				   &parDiamSquare, &DiamondSquareBase::MapValuesToGrayScale);
-	
+	               &parDiamSquare, &DiamondSquareParallel::MapValuesToGrayScale);
+	MeasureTimeFn (&parTimeCustomRangeMap, "Custom range map generated in ",
+	               &parDiamSquare, &DiamondSquareParallel::MapValuesToIntRange,
+	               0, 255);
+
 
 #if SAVE_GRAYSCALE_IMAGE
 	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
@@ -121,9 +185,9 @@ void runParallelConstantMem ()
 {
 #if !TESTING_SETTINGS
 	parDiamSquareConstMem.SetRandomScale (diamondSquareSettings[setting].randomScale);
-	//ds.SetRandomScale(100);
+	//parDiamSquareConstMem.SetRandomScale(100);
 	parDiamSquareConstMem.SetInitialStepSize (diamondSquareSettings[setting].initialStepSize);
-	//ds.SetInitialStepSize(32);
+	//parDiamSquareConstMem.SetInitialStepSize(32);
 #else
 	parDiamSquareConstMem.SetRandomScale(30.f);
 	parDiamSquareConstMem.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
@@ -137,7 +201,7 @@ void runParallelConstantMem ()
 #endif
 
 	MeasureTimeFn (nullptr, "Grayscale map generated in ",
-			   &parDiamSquareConstMem, &DiamondSquareBase::MapValuesToGrayScale);
+	               &parDiamSquareConstMem, &DiamondSquareBase::MapValuesToGrayScale);
 
 #if SAVE_GRAYSCALE_IMAGE
 	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
@@ -153,12 +217,18 @@ void runParallelConstantMem ()
 #endif
 }
 
-
 int main (int argc, char** argv)
 {
-	cudaFree(0);
+	cudaFree (0);
 
-	try {
+	try
+	{
+
+#if RUN_SIZES_COMPARATOR
+		runComparator();
+		return 0;
+#endif
+
 		runParallel();
 		std::cout << std::endl << std::endl << std::endl << std::endl;
 
@@ -185,7 +255,8 @@ int main (int argc, char** argv)
 #endif
 #endif
 	}
-	catch (std::exception& e) {
+	catch (std::exception& e)
+	{
 		std::cout << e.what() << std::endl;
 		return 0;
 	}

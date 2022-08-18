@@ -62,7 +62,7 @@ void DiamondSquareSequential::SquareStep ()
 	for (int x = 0; x < size; x += half) {
 		for (int y = (x + half) % step; y < size; y += step) {
 
-			uint32_t idx = 0;
+			int idx = 0;
 			float value = 0;
 			int count = 0;
 
@@ -72,17 +72,17 @@ void DiamondSquareSequential::SquareStep ()
 				count++;
 			}
 			idx = (x + half) * size + y;
-			if (idx < totalSize && idx >= 0) {
+			if (idx < totalSize) {
 				value += map[idx];
 				count++;
 			}
 			idx = x * size + y - half;
-			if (idx < totalSize && idx >= 0 && static_cast<int> (y - half) >= 0) {
+			if (idx < totalSize && static_cast<int> (y - half) >= 0) {
 				value += map[idx];
 				count++;
 			}
 			idx = x * size + y + half;
-			if (idx < totalSize && idx >= 0 && y + half < size) {
+			if (idx < totalSize && y + half < size) {
 				value += map[idx];
 				count++;
 			}
