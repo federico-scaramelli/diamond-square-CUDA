@@ -2,6 +2,7 @@
 #include <cstdint>
 #include "../../utils/TimeMeasure.h"
 
+// Initial setting for a single algorithm execution
 struct DiamondSquareSetting
 {
 public:
@@ -11,6 +12,7 @@ public:
 	uint8_t imageTileSize;
 };
 
+// Data structure to save performance results related to a single algorithm execution
 struct DiamondSquareResult
 {
 public:
@@ -33,6 +35,7 @@ public:
 	}
 };
 
+// Enum to easily recognize settings from Application
 enum DiamondSquareSettings
 {
 	Size9_Step8_Rnd1,

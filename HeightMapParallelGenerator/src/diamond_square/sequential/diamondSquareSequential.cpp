@@ -3,6 +3,7 @@
 
 #pragma region Execution Functions
 
+// Initialize the starting sub-squares with random float values
 void DiamondSquareSequential::InitializeDiamondSquare ()
 {
 	std::cout << " ==== SEQUENTIAL DIAMOND SQUARE ==== "<< std::endl << std::endl;
@@ -16,6 +17,7 @@ void DiamondSquareSequential::InitializeDiamondSquare ()
 	}
 }
 
+// Execute the algorithm
 void DiamondSquareSequential::DiamondSquare ()
 {
 	while (step > 1) {
@@ -38,6 +40,7 @@ void DiamondSquareSequential::DiamondSquare ()
 	}
 }
 
+// Execute a Diamond step
 void DiamondSquareSequential::DiamondStep ()
 {
 	for (uint32_t x = half; x < size; x += step) {
@@ -57,6 +60,7 @@ void DiamondSquareSequential::DiamondStep ()
 	}
 }
 
+// Execute a Square step
 void DiamondSquareSequential::SquareStep ()
 {
 	for (int x = 0; x < size; x += half) {

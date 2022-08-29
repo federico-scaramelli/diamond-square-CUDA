@@ -1,6 +1,6 @@
 #include "colorMapping.h"
 
-
+// Creates a set of colors from starting from the mapping settings
 void ColorMapping::CacheColorsFromMapping ()
 {
 	std::cout << "Generating color mappings cache..." << std::endl;
@@ -33,6 +33,8 @@ void ColorMapping::CacheColorsFromMapping ()
 	colors.resize (sizeof (ColorPixel) * count);
 }
 
+// Get a color from a value computing a linear interpolation between two colors
+// The colors are taken from the list of mapping ranges specified on the settings below
 void ColorMapping::GetColorLerp (const int value, ColorPixel* const outColor)
 {
 	if (outColor == nullptr) { throw std::runtime_error ("Output color pointer is nullptr."); }
@@ -68,7 +70,7 @@ void ColorMapping::GetColorLerp (const int value, ColorPixel* const outColor)
 	}
 }
 
-
+// COlor mapping settings
 ColorRangeMap ColorMapping::mappings[8]{
 	{ "#064273", "#50C1E5", 70 }, //Sea
 	{ "#BAB280", "#FAE7AC", 78 }, //Sand
@@ -79,7 +81,7 @@ ColorRangeMap ColorMapping::mappings[8]{
 	{ "#80857F", "#AEAEAE", 210 }, //Mountain
 	{ "#c3dcdc", "#ffffff", 255 } //Snow
 
-
+	// Old values
 	/*{"#55871E", "#697764", 155, 160},	//Mountain start
 	{"#697764", "#8A8B87", 160, 175},	//Mountain low
 	{"#8A8B87", "#6D582F", 175, 195},	//Mountain medium

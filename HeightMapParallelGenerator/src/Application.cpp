@@ -9,31 +9,34 @@
 #include "./diamond_square/cuda/DiamondSquareParallel_Constant.h"
 
 
+// Setting to use if testing setting flag is not enabled
 DiamondSquareSettings setting = Size16385_Step4096_Rnd30;
 
 
+// Set the size variable
 #if TESTING_SETTINGS
 uint32_t size = testingDiamondSquareSettings[TESTING_SETTINGS].size;
 #else
 uint32_t size = diamondSquareSettings[setting].size;
 #endif
 
-
+// Instantiate an object for each version of the algorithms 
 DiamondSquareParallel parDiamSquare{ size };
 DiamondSquareSequential seqDiamSquare{ size };
 DiamondSquareParallel_Constant parDiamSquareConstMem{ size };
 
-
+// Variables to store total times of the algorithm execution (mapping not included)
 double sequentialTime;
 double parallelTime;
 double parallelTime_const;
 
+// Variables to store times of the mapping algorithm execution 
 double seqTimeGrayscale;
 double parTimeGrayscale;
 double seqTimeCustomRangeMap;
 double parTimeCustomRangeMap;
 
-// COMPARE SIZES
+// Compare performance on different sizes defined by the testing settings array
 void runComparator ()
 {
 	int settingsCount = sizeof(testingDiamondSquareSettings) / sizeof (DiamondSquareSetting);
@@ -98,7 +101,7 @@ void runComparator ()
 	}
 }
 
-// SEQUENTIAL
+// Execute the sequential version of the algorithm
 void runSequential ()
 {
 #if !TESTING_SETTINGS
@@ -111,19 +114,23 @@ void runSequential ()
 	seqDiamSquare.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
 #endif
 
+	// Execute the algorithm
 	MeasureTimeFn (&sequentialTime, "Sequential algorithm execution terminated in ",
 	               &seqDiamSquare, &DiamondSquareBase::ExecuteDiamondSquare);
 
+	// Debug purposes
 #if PRINT_GRAYSCALE_SEQ
 	ds.PrintGrayScaleMap();
 #endif
 
+	// Map the output values
 	MeasureTimeFn (&seqTimeCustomRangeMap, "Custom range map generated in ",
 	               &seqDiamSquare, &DiamondSquareBase::MapValuesToIntRange,
 	               -1000, 2000);
 	MeasureTimeFn (&seqTimeGrayscale, "Grayscale map generated in ",
 	               &seqDiamSquare, &DiamondSquareBase::MapValuesToGrayScale);
 
+	// Image saving
 #if SAVE_GRAYSCALE_IMAGE
 	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
 	MeasureTimeFn(nullptr, "Grayscale image generated and saved on file in ",
@@ -138,26 +145,31 @@ void runSequential ()
 #endif
 }
 
-// PARALLEL
+// Execute the parallel version of the algorithm
 void runParallel ()
 {
 #if !TESTING_SETTINGS
 	parDiamSquare.SetRandomScale (diamondSquareSettings[setting].randomScale);
+	// Optionally it's possible to change the initial random scale
 	parDiamSquare.SetRandomScale(100);
 	parDiamSquare.SetInitialStepSize (diamondSquareSettings[setting].initialStepSize);
+	// Optionally it's possible to change the initial step size
 	parDiamSquare.SetInitialStepSize(256);
 #else
 	parDiamSquare.SetRandomScale(testingDiamondSquareSettings[TESTING_SETTINGS].randomScale);
 	parDiamSquare.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
 #endif
 
+	// Execute the algorithm
 	MeasureTimeFn (&parallelTime, "Parallel algorithm execution terminated in ",
 	               &parDiamSquare, &DiamondSquareBase::ExecuteDiamondSquare);
 
+	// Debug purposes
 #if PRINT_GRAYSCALE_CUDA
 	parDiamSquare.PrintGrayScaleMap();
 #endif
 
+	// Map the output values
 	MeasureTimeFn (&parTimeGrayscale, "Grayscale map generated in ",
 	               &parDiamSquare, &DiamondSquareParallel::MapValuesToGrayScale);
 	MeasureTimeFn (&parTimeCustomRangeMap, "Custom range map generated in ",
@@ -165,6 +177,7 @@ void runParallel ()
 	               0, 255);
 
 
+	// Image saving
 #if SAVE_GRAYSCALE_IMAGE
 	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
 	MeasureTimeFn(nullptr, "Grayscale image generated and saved on file in ",
@@ -180,29 +193,35 @@ void runParallel ()
 }
 
 
-// PARALLEL CONSTANT MEMORY
+// Execute the parallel version of the algorithm using the constant memory
 void runParallelConstantMem ()
 {
 #if !TESTING_SETTINGS
 	parDiamSquareConstMem.SetRandomScale (diamondSquareSettings[setting].randomScale);
+	// Optionally it's possible to change the initial random scale
 	//parDiamSquareConstMem.SetRandomScale(100);
 	parDiamSquareConstMem.SetInitialStepSize (diamondSquareSettings[setting].initialStepSize);
+	// Optionally it's possible to change the initial step size
 	//parDiamSquareConstMem.SetInitialStepSize(32);
 #else
 	parDiamSquareConstMem.SetRandomScale(30.f);
 	parDiamSquareConstMem.SetInitialStepSize(testingDiamondSquareSettings[TESTING_SETTINGS].initialStepSize);
 #endif
 
+	// Execute the algorithm
 	MeasureTimeFn (&parallelTime_const, "Parallel algorithm execution terminated in ",
 	               &parDiamSquareConstMem, &DiamondSquareBase::ExecuteDiamondSquare);
 
+	// Debug purposes
 #if PRINT_GRAYSCALE_CUDA
 	parDiamSquare.PrintGrayScaleMap();
 #endif
 
+	// Map the output values
 	MeasureTimeFn (nullptr, "Grayscale map generated in ",
 	               &parDiamSquareConstMem, &DiamondSquareBase::MapValuesToGrayScale);
 
+	// Image saving
 #if SAVE_GRAYSCALE_IMAGE
 	std::cout << "\n - GRAYSCALE IMAGE - " << std::endl;
 	MeasureTimeFn(nullptr, "Grayscale generated and saved on file in ",
@@ -219,6 +238,7 @@ void runParallelConstantMem ()
 
 int main (int argc, char** argv)
 {
+	// Initialize the CUDA context to avoid initial overhead while measuring executions time
 	cudaFree (0);
 
 	try

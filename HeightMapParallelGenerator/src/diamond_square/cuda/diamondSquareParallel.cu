@@ -3,6 +3,7 @@
 #include "diamondSquareParallel.h"
 #include "../parameters/applicationSettings.h"
 
+// Get linearized index on device (GPU)
 __device__ __forceinline__ uint32_t GetIndexOnDevice (uint32_t x, uint32_t y, uint32_t size)
 {
 	x = x >= size ? size - 1 : x;
@@ -16,13 +17,14 @@ __device__ __forceinline__ uint32_t GetIndexOnDevice (uint32_t x, uint32_t y, ui
 #include "curand.h"
 #include "curand_kernel.h"
 
+// Used only to test the distribution of positive and negative values obtained by cuRAND generation
 inline bool IsRandomNegative (float* const value)
 {
 	*value = -1.0f + *value * 2.0f;
 	return *value < 0;
 }
 
-// Used to check the random distribution between negative and positive values
+// Used only to test the distribution of positive and negative values obtained by cuRAND generation
 void DiamondSquareParallel::PrintRandoms ()
 {
 	map = new float[totalSize];
@@ -38,15 +40,18 @@ void DiamondSquareParallel::PrintRandoms ()
 	std::cout << totalSize - count << " positivi" << std::endl;
 }
 
+// Generate all the random numbers (all the map) using cuRAND host API
 void DiamondSquareParallel::GenerateRandomNumbers_HostAPI ()
 {
+	// Random seed = random number generated on the CPU
 	int seed = RandomIntUniform();
+	// Create and set the generator
 	curandGenerator_t generator;
 	CHECK_CURAND (curandCreateGenerator(&generator, CURAND_RNG_PSEUDO_MT19937))
 	CHECK_CURAND (curandSetGeneratorOrdering(generator, CURAND_ORDERING_PSEUDO_BEST));
 	CHECK_CURAND (curandSetPseudoRandomGeneratorSeed(generator, seed))
 
-	/* Generate n floats on device */
+	// Generate n floats on device memory
 	CHECK_CURAND (curandGenerateUniform(generator, dev_Map, totalSize))
 
 	// PrintRandoms();
@@ -55,48 +60,56 @@ void DiamondSquareParallel::GenerateRandomNumbers_HostAPI ()
 	CHECK_CURAND (curandDestroyGenerator(generator))
 }
 
+// Kernel to setup the cuRAND Device API random generator
 __global__ void SetupRandomGenerator (curandStateMRG32k3a* state, const int n, const uint32_t totalSize, const int seed)
 {
 	uint32_t idx = threadIdx.x + blockIdx.x * blockDim.x;
 
 	if (idx * n > totalSize) return;
 
+	// seed + idx insted of seed, idx: https://github.com/rogerallen/raytracinginoneweekendincuda/issues/2
 	curand_init (seed + idx, 0, 0, &state[idx]);
 }
 
+// Kernel to generate random numbers with cuRAND Device API
 __global__ void GenerateRandomNumbers (float* map, curandStateMRG32k3a* state, const int n, const uint32_t totalSize)
 {
 	uint32_t idx = threadIdx.x + blockIdx.x * blockDim.x;
 	if (idx * n > totalSize) return;
 	
-	/* Copy state to local memory for efficiency */
+	// Copy state to local memory for efficiency
 	curandStateMRG32k3a localState = state[idx];
 
-	/* Generate pseudo-random uniforms */
+	// Generate pseudo-random uniforms 
 	for (int i = 0; i < n; i++)
 	{
 		if (idx * n + i > totalSize) return;
 		map[idx * n + i] = curand_uniform_double (&localState);
 	}
-	/* Copy state back to global memory */
+	// Copy state back to global memory 
 	state[idx] = localState;
 }
 
+// Method do call the random numbers generation kernels using cuRAND Device API
 void DiamondSquareParallel::GenerateRandomNumbers_DeviceAPI ()
 {
-	// Define the amount of values to be generated for each thread
-	int n = 128;
+	// Define the amount of values to be generated for each thread. 
+	int n;
 
-	CHECK (cudaMalloc((void **)&dev_MRGStates, (totalSize + n - 1) / n * sizeof(curandStateMRG32k3a)))
-
+	// 1D blocks and grid to call the kernels
+	// The maximum size for the grid is defined on the Application Settings.
+	// Empirically: BLOCK_SIZE_1D / 2 (128) gives better results 
 	dim3 blockSize (BLOCK_SIZE_1D / 2, 1, 1);
 	auto grid = (totalSize + blockSize.x - 1) / blockSize.x > MAX_GRID_SIZE_1D
-		            ? MAX_GRID_SIZE_1D
-		            : (totalSize + blockSize.x - 1) / blockSize.x;
-	//dim3 gridSize ((((totalSize + n - 1) / n) + (blockSize.x - 1)) / blockSize.x, 1, 1);
+										? MAX_GRID_SIZE_1D
+										: (totalSize + blockSize.x - 1) / blockSize.x;
 	n = grid == MAX_GRID_SIZE_1D
-		    ? (totalSize + blockSize.x * MAX_GRID_SIZE_1D - 1) / (blockSize.x * MAX_GRID_SIZE_1D)
-		    : 1;
+					? (totalSize + blockSize.x * MAX_GRID_SIZE_1D - 1) / (blockSize.x * MAX_GRID_SIZE_1D)
+					: 1;
+
+	// Allocate memory for the cuRAND states
+	CHECK (cudaMalloc((void **)&dev_MRGStates, (totalSize + n - 1) / n * sizeof(curandStateMRG32k3a)))
+
 	dim3 gridSize (grid, 1, 1);
 
 	SetupRandomGenerator<<<gridSize, blockSize>>> (dev_MRGStates, n, totalSize, RandomIntUniform());
@@ -111,6 +124,7 @@ void DiamondSquareParallel::GenerateRandomNumbers_DeviceAPI ()
 
 #pragma region Initialization
 
+// Allocate memory on device to contain the overall map
 void DiamondSquareParallel::AllocateMapOnDevice ()
 {
 	CHECK (cudaMalloc ((void**)&dev_Map, totalSize * sizeof(float)))
@@ -119,6 +133,7 @@ void DiamondSquareParallel::AllocateMapOnDevice ()
 	CHECK (cudaMalloc ((void**)&dev_Max, sizeof(float)))
 }
 
+// Initialization step: random numbers generation and memory allocation
 void DiamondSquareParallel::InitializeDiamondSquare ()
 {
 	std::cout << " ==== PARALLEL DIAMOND SQUARE ====\n\n";
@@ -132,7 +147,7 @@ void DiamondSquareParallel::InitializeDiamondSquare ()
 #if !RAND_DEVICE_API
 	MeasureTimeFn (nullptr, "Random number set with host API generated in ", this,
 	               &DiamondSquareParallel::GenerateRandomNumbers_HostAPI);
-#elif (!RUN_SIZES_COMPARATOR)
+#else
 	MeasureTimeFn (nullptr, "Random number set with device API generated in ", this,
 	               &DiamondSquareParallel::GenerateRandomNumbers_DeviceAPI);
 #endif
@@ -143,6 +158,7 @@ void DiamondSquareParallel::InitializeDiamondSquare ()
 
 #pragma region Execution
 
+// Compute the blocks and grid sizes on each step of the algorithm
 void DiamondSquareParallel::ComputeBlockGridSizes ()
 {
 	/*			  2^k			  or			  MAX_BLOCK_SIZE			  */
@@ -160,6 +176,7 @@ void DiamondSquareParallel::ComputeBlockGridSizes ()
 	gridSizeYSquare = (threadAmount * 2 + MAX_BLOCK_SIZE - 1) / MAX_BLOCK_SIZE;
 }
 
+// Execute the algorithm cycles
 void DiamondSquareParallel::DiamondSquare ()
 {
 #if EVENTS_TIMING
@@ -227,6 +244,7 @@ __global__ void DiamondStepParallel (float* map, const uint32_t size, const uint
 
 	map[GetIndexOnDevice (x, y, size)] = val;
 
+	// Lowers performance to 30%
 	/*AtomicMinFloat(min, val);
 	AtomicMaxFloat(max, val);*/
 }
@@ -271,16 +289,12 @@ __global__ void SquareStepParallel (float* map, uint32_t size, uint32_t step, fl
 		       : 0;
 	count += 1 * (static_cast<int> (y - (step / 2))) >= 0;
 
-	/*float val = map[GetIndexOnDevice (x - (step / 2), y, size)] +
-		map[GetIndexOnDevice (x + (step / 2), y, size)] +
-		map[GetIndexOnDevice (x, y - (step / 2), size)] +
-		map[GetIndexOnDevice (x, y + (step / 2), size)];*/
-
 	val /= count;
 	val += (-1.0f + map[GetIndexOnDevice (x, y, size)] * 2.0f) * randomScale;
 
 	map[GetIndexOnDevice (x, y, size)] = val;
 
+	// Lowers performance to 30%
 	/*AtomicMinFloat(min, val);
 	AtomicMaxFloat(max, val);*/
 }
@@ -306,6 +320,7 @@ void DiamondSquareParallel::SquareStep ()
 
 #pragma region Values Mapping
 
+// https://stackoverflow.com/questions/17399119/how-do-i-use-atomicmax-on-floating-point-values-in-cuda/51549250#51549250
 __device__ __forceinline__ float AtomicMinFloat (float* addr, float value)
 {
 	float min;
@@ -316,7 +331,7 @@ __device__ __forceinline__ float AtomicMinFloat (float* addr, float value)
 	return min;
 }
 
-
+// https://stackoverflow.com/questions/17399119/how-do-i-use-atomicmax-on-floating-point-values-in-cuda/51549250#51549250
 __device__ __forceinline__ float AtomicMaxFloat (float* addr, float value)
 {
 	float max;
@@ -330,21 +345,27 @@ __device__ __forceinline__ float AtomicMaxFloat (float* addr, float value)
 
 __global__ void ComputeMinMax (const float* map, float* myMin, float* myMax, const uint32_t size)
 {
+	// Shared memory to find the minimum and maximum of a single 1D block
 	__shared__ float blockMin[BLOCK_SIZE_1D];
 	__shared__ float blockMax[BLOCK_SIZE_1D];
 
 	uint32_t linearIdx = blockIdx.x * blockDim.x + threadIdx.x;
 
+	// I use FLT_MAX and FLT_MIN to avoid that values not to be considered as they are outside the map
+	// influence the search for the minimum and maximum
 	bool cond = linearIdx >= size * size;
 	blockMin[threadIdx.x] = cond ? FLT_MAX : blockMin[threadIdx.x];
 	blockMax[threadIdx.x] = cond ? -FLT_MAX : blockMax[threadIdx.x];
 	if (cond) { return; }
 
+	// Cache the values on shared memory
 	blockMin[threadIdx.x] = map[linearIdx];
 	blockMax[threadIdx.x] = map[linearIdx];
 
+	// Block sync barrier
 	__syncthreads();
 
+	// Parallel reduction on blocks to push minimum and maximum in the direction of the first indices
 	for (uint8_t stride = blockDim.x / 2; stride > 32; stride >>= 1)
 	{
 		if (threadIdx.x < stride)
@@ -355,6 +376,7 @@ __global__ void ComputeMinMax (const float* map, float* myMin, float* myMax, con
 		__syncthreads();
 	}
 
+	// Warp unrolling
 	if (threadIdx.x < 32)
 	{
 		volatile float* _min = blockMin;
@@ -375,6 +397,7 @@ __global__ void ComputeMinMax (const float* map, float* myMin, float* myMax, con
 		_max[threadIdx.x] = max (_max[threadIdx.x], _max[threadIdx.x + 1]);
 	}
 
+	// Float atomic operations to find the global (not block-related) minimum and maximum
 	if (threadIdx.x == 0) AtomicMinFloat (myMin, blockMin[0]);
 	if (threadIdx.x == 0) AtomicMaxFloat (myMax, blockMax[0]);
 }
@@ -404,6 +427,7 @@ __global__ void MapFloatToGrayScale (const float* map, uint8_t* grayScaleMap,
 	grayScaleMap[linearIdx] = value;
 }
 
+// Map all the values from float to grayscale
 void DiamondSquareParallel::MapValuesToGrayScale ()
 {
 	std::cout << "\n - VALUES MAPPING - " << std::endl;
@@ -413,12 +437,14 @@ void DiamondSquareParallel::MapValuesToGrayScale ()
 
 	int gridSize = (totalSize + BLOCK_SIZE_1D - 1) / BLOCK_SIZE_1D;
 
+	// Kernel to find the minimum and maximum value present in the map
 	ComputeMinMax<<<gridSize, BLOCK_SIZE_1D>>> (dev_Map, dev_Min, dev_Max, size);
 	CHECK (cudaMemcpy (&min, dev_Min, sizeof(float), cudaMemcpyDeviceToHost))
 	CHECK (cudaMemcpy (&max, dev_Max, sizeof(float), cudaMemcpyDeviceToHost))
 
 	CHECK (cudaDeviceSynchronize());
 
+	// Kernel to map the values to grayscale depending on the min and max values
 	MapFloatToGrayScale<<<gridSize, BLOCK_SIZE_1D>>> (dev_Map, dev_GrayScaleMap, dev_Min, dev_Max, 0, 255, size);
 
 	delete[] grayScaleMap;

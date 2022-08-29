@@ -4,6 +4,7 @@
 
 #pragma region Constructors
 
+// Initializes data shared between all the versions of the algorithm
 DiamondSquareBase::DiamondSquareBase (const uint32_t size)
 {
 	this->size = size;
@@ -17,6 +18,7 @@ DiamondSquareBase::DiamondSquareBase (const uint32_t size)
 	executionTime = 0;
 }
 
+// Free memory
 DiamondSquareBase::~DiamondSquareBase ()
 {
 	delete[] map;
@@ -24,6 +26,7 @@ DiamondSquareBase::~DiamondSquareBase ()
 	delete[] intMap;
 }
 
+// Explicitly delete the float map from memory
 void DiamondSquareBase::DeleteFloatMap ()
 {
 	delete[] map;
@@ -35,6 +38,7 @@ void DiamondSquareBase::DeleteFloatMap ()
 
 #pragma region Support Functions
 
+// Check if the size is adequate for the algorithm
 void DiamondSquareBase::CheckSizeAdequate ()
 {
 	if ((size - 1 & size - 2) != 0)
@@ -43,6 +47,7 @@ void DiamondSquareBase::CheckSizeAdequate ()
 	}
 }
 
+// Get the linearized index
 uint32_t DiamondSquareBase::GetIndexOnHost (uint32_t x, uint32_t y) const
 {
 	if (x >= size) x = size - 1;
@@ -51,6 +56,7 @@ uint32_t DiamondSquareBase::GetIndexOnHost (uint32_t x, uint32_t y) const
 	return x * size + y;
 }
 
+// Print maps methods
 void DiamondSquareBase::PrintFloatMap () const
 {
 	for (uint32_t i = 0; i < size; ++i)
@@ -111,6 +117,7 @@ void DiamondSquareBase::SetInitialStepSize (uint32_t initValuesDistance)
 
 #pragma region Image Functions
 
+// Mapping algorithms CPU side
 void DiamondSquareBase::MapValuesToGrayScale ()
 {
 	std::cout << "\n - VALUES MAPPING - " << std::endl;
@@ -166,6 +173,7 @@ void DiamondSquareBase::GenerateGrayScaleMap ()
 		               &DiamondSquareBase::MapValuesToGrayScale);
 }
 
+// Save image functions
 void DiamondSquareBase::SaveGrayScaleImage (const char* fname, int tileSize)
 {
 	if (grayScaleMap == nullptr)
@@ -214,7 +222,7 @@ void DiamondSquareBase::SaveColorImage (const char* fname, int tileSize)
 
 #pragma endregion
 
-
+// Main method to start the algorithm execution (initialization + execution)
 void DiamondSquareBase::ExecuteDiamondSquare ()
 {
 	MeasureTimeFn (&initializationTime, "Map initialized in ", this, &DiamondSquareBase::InitializeDiamondSquare);

@@ -3,6 +3,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
+// Data contained in this struct change on every algorithm cycle
 struct Constant
 {
 	uint32_t dev_Step;
@@ -11,6 +12,7 @@ struct Constant
 
 Constant constant = {};
 __constant__ Constant dev_Constant[1];
+// Size is constant and never change during the algorithm execution
 __constant__ uint32_t dev_Size[1];
 
 __device__ __forceinline__ uint32_t GetIndexOnDevice (uint32_t x, uint32_t y)
